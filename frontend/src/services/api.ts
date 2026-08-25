@@ -10,11 +10,7 @@ import {
   RequestResponseInput
 } from '../types';
 
-const isBrowser = typeof window !== 'undefined';
-const isLocalhost = isBrowser && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || (isLocalhost ? '' : '');
-
-let fallbackListings: Listing[] = [
+let listingsData: Listing[] = [
   {
     id: 1,
     title: 'Calculus Early Transcendentals 8th Edition',
@@ -145,7 +141,7 @@ let fallbackListings: Listing[] = [
   }
 ];
 
-let fallbackRequests: StudentRequest[] = [
+let requestsData: StudentRequest[] = [
   {
     id: 1,
     title: 'Need Drafter for Engineering Drawing Exam tomorrow',
@@ -173,39 +169,21 @@ let fallbackRequests: StudentRequest[] = [
 ];
 
 export async function fetchListings(filters?: ListingFilters): Promise<Listing[]> {
-  // If in cloud production and no external API URL configured, return instant campus data
-  if (!API_BASE) {
-    let result = [...fallbackListings];
-    if (filters?.category && filters.category !== 'All') {
-      result = result.filter(item => item.category.toLowerCase() === filters.category!.toLowerCase());
-    }
-    if (filters?.transactionType && filters.transactionType !== 'all') {
-      result = result.filter(item => item.transactionType === filters.transactionType);
-    }
-    if (filters?.campus && filters.campus !== 'All Campuses') {
-      result = result.filter(item => item.campus === filters.campus);
-    }
-    if (filters?.search) {
-      const q = filters.search.toLowerCase();
-      result = result.filter(item => item.title.toLowerCase().includes(q) || item.description.toLowerCase().includes(q));
-    }
-    return result;
+  let result = [...listingsData];
+  if (filters?.category && filters.category !== 'All') {
+    result = result.filter(item => item.category.toLowerCase() === filters.category!.toLowerCase());
   }
-
-  try {
-    const params = new URLSearchParams();
-    if (filters?.category && filters.category !== 'All') params.append('category', filters.category);
-    if (filters?.search) params.append('search', filters.search);
-    if (filters?.transactionType && filters.transactionType !== 'all') params.append('transactionType', filters.transactionType);
-    if (filters?.verifiedOnly) params.append('verifiedOnly', 'true');
-    if (filters?.campus && filters.campus !== 'All Campuses') params.append('campus', filters.campus);
-
-    const res = await fetch(`${API_BASE}/listings?${params.toString()}`);
-    if (!res.ok) throw new Error('Network error');
-    return await res.json();
-  } catch (_) {
-    return fallbackListings;
+  if (filters?.transactionType && filters.transactionType !== 'all') {
+    result = result.filter(item => item.transactionType === filters.transactionType);
   }
+  if (filters?.campus && filters.campus !== 'All Campuses') {
+    result = result.filter(item => item.campus === filters.campus);
+  }
+  if (filters?.search) {
+    const q = filters.search.toLowerCase();
+    result = result.filter(item => item.title.toLowerCase().includes(q) || item.description.toLowerCase().includes(q));
+  }
+  return result;
 }
 
 export async function createListing(listingData: CreateListingInput): Promise<Listing> {
@@ -215,42 +193,19 @@ export async function createListing(listingData: CreateListingInput): Promise<Li
     isVerified: true,
     timePosted: new Date().toISOString()
   };
-  fallbackListings.unshift(newListing);
-
-  if (API_BASE) {
-    try {
-      await fetch(`${API_BASE}/listings`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(listingData)
-      });
-    } catch (_) {}
-  }
+  listingsData.unshift(newListing);
   return newListing;
 }
 
 export async function submitOffer(offerData: CreateOfferInput): Promise<any> {
-  if (API_BASE) {
-    try {
-      await fetch(`${API_BASE}/offers`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(offerData)
-      });
-    } catch (_) {}
-  }
   return { success: true, ...offerData };
 }
 
 export async function fetchRequests(campus?: string): Promise<StudentRequest[]> {
-  if (!API_BASE) return fallbackRequests;
-  try {
-    const res = await fetch(`${API_BASE}/requests${campus ? `?campus=${campus}` : ''}`);
-    if (!res.ok) throw new Error('Network error');
-    return await res.json();
-  } catch (_) {
-    return fallbackRequests;
+  if (campus && campus !== 'All Campuses') {
+    return requestsData.filter(r => r.campus === campus);
   }
+  return requestsData;
 }
 
 export async function createRequest(data: CreateRequestInput): Promise<StudentRequest> {
@@ -259,7 +214,7 @@ export async function createRequest(data: CreateRequestInput): Promise<StudentRe
     id: Date.now(),
     timePosted: new Date().toISOString()
   };
-  fallbackRequests.unshift(req);
+  requestsData.unshift(req);
   return req;
 }
 
