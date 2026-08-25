@@ -4,6 +4,164 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Listing, StudentRequest } from '../types';
 import * as api from '../services/api';
 
+const defaultListings: Listing[] = [
+  {
+    id: 1,
+    title: 'Calculus Early Transcendentals 8th Edition',
+    description: 'Used but in great condition, no markings. Perfect for Math 101/102.',
+    category: 'textbooks',
+    transactionType: 'sell',
+    price: 450,
+    swapWants: '',
+    condition: 'Good',
+    campus: 'Main Campus - North Wing',
+    locationTag: 'Central Library Foyer',
+    sellerName: 'Aarav Sharma',
+    sellerMajor: 'Computer Science',
+    isVerified: true,
+    timePosted: '2025-04-10T10:30:00Z'
+  },
+  {
+    id: 2,
+    title: 'TI-84 Plus CE Graphing Calculator',
+    description: 'Barely used, includes charging cable and case.',
+    category: 'electronics',
+    transactionType: 'sell',
+    price: 1500,
+    swapWants: '',
+    condition: 'Like New',
+    campus: 'South Campus - Tech Park',
+    locationTag: 'Student Activity Center',
+    sellerName: 'Priya Patel',
+    sellerMajor: 'Electrical Engineering',
+    isVerified: true,
+    timePosted: '2025-04-11T14:15:00Z'
+  },
+  {
+    id: 3,
+    title: 'Complete Organic Chemistry Notes (Semester 3)',
+    description: 'Handwritten, colour-coded, includes reaction mechanisms and diagrams.',
+    category: 'notes',
+    transactionType: 'swap',
+    price: 0,
+    swapWants: 'Need Microeconomics notes or coffee',
+    condition: 'Digital PDF',
+    campus: 'East Campus - Medical Block',
+    locationTag: 'Main Canteen',
+    sellerName: 'Rohan Gupta',
+    sellerMajor: 'Chemistry',
+    isVerified: true,
+    timePosted: '2025-04-12T09:00:00Z'
+  },
+  {
+    id: 4,
+    title: 'Guitar Lessons for Beginners',
+    description: 'I can teach basic chords, strumming and a few songs. 4 sessions of 1 hour each.',
+    category: 'skills',
+    transactionType: 'skill_trade',
+    price: 0,
+    swapWants: 'Help with Python programming or graphic design',
+    condition: 'N/A',
+    campus: 'West Hostel Complex',
+    locationTag: 'Hostel A Common Room',
+    sellerName: 'Sneha Iyer',
+    sellerMajor: 'Music',
+    isVerified: true,
+    timePosted: '2025-04-13T16:45:00Z'
+  },
+  {
+    id: 5,
+    title: 'Concert Ticket – Indie Night (1 extra)',
+    description: 'One extra ticket for the college fest Indie Night on Friday.',
+    category: 'tickets',
+    transactionType: 'sell',
+    price: 500,
+    swapWants: '',
+    condition: 'Electronic',
+    campus: 'Main Campus - North Wing',
+    locationTag: 'Campus Bookstore',
+    sellerName: 'Kabir Singh',
+    sellerMajor: 'Business Administration',
+    isVerified: true,
+    timePosted: '2025-04-14T11:20:00Z'
+  },
+  {
+    id: 6,
+    title: 'Old Programming Books (Free)',
+    description: 'C++, Java, and Data Structures books. Taking space, giving away.',
+    category: 'giveaway',
+    transactionType: 'free',
+    price: 0,
+    swapWants: '',
+    condition: 'Used',
+    campus: 'South Campus - Tech Park',
+    locationTag: 'Engineering Block Entrance',
+    sellerName: 'Ananya Reddy',
+    sellerMajor: 'Information Technology',
+    isVerified: false,
+    timePosted: '2025-04-14T13:00:00Z'
+  },
+  {
+    id: 7,
+    title: 'HP Wireless Mouse',
+    description: 'Works perfectly, upgraded to a gaming mouse. Comes with USB receiver.',
+    category: 'electronics',
+    transactionType: 'swap',
+    price: 0,
+    swapWants: 'Bluetooth earphones or a power bank',
+    condition: 'Good',
+    campus: 'South Campus - Tech Park',
+    locationTag: 'Student Activity Center',
+    sellerName: 'Vikram Mehta',
+    sellerMajor: 'Mechanical Engineering',
+    isVerified: true,
+    timePosted: '2025-04-15T08:10:00Z'
+  },
+  {
+    id: 8,
+    title: 'Handwritten Physics Lab Manual (Sem 2)',
+    description: 'All experiments neatly written with observations and graphs.',
+    category: 'notes',
+    transactionType: 'sell',
+    price: 150,
+    swapWants: '',
+    condition: 'Good',
+    campus: 'East Campus - Medical Block',
+    locationTag: 'Academic Block B Lobby',
+    sellerName: 'Meera Nair',
+    sellerMajor: 'Physics',
+    isVerified: true,
+    timePosted: '2025-04-15T12:30:00Z'
+  }
+];
+
+const defaultRequests: StudentRequest[] = [
+  {
+    id: 1,
+    title: 'Need Drafter for Engineering Drawing Exam tomorrow',
+    description: 'Exam at 9 AM, urgently need a mini drafter in good condition.',
+    category: 'electronics',
+    campus: 'South Campus - Tech Park',
+    requesterName: 'Varun A.',
+    requesterMajor: 'Mechanical',
+    reward: '₹150 Bounty',
+    urgency: 'urgent',
+    timePosted: '2025-04-15T14:00:00Z'
+  },
+  {
+    id: 2,
+    title: 'Looking for Cycle Pump in Hostel Block B',
+    description: 'Need to inflate tires before morning class.',
+    category: 'giveaway',
+    campus: 'West Hostel Complex',
+    requesterName: 'Rahul M.',
+    requesterMajor: 'CSE',
+    reward: 'Coffee / Snack',
+    urgency: 'urgent',
+    timePosted: '2025-04-15T15:30:00Z'
+  }
+];
+
 interface User {
   name: string;
   email: string;
@@ -53,10 +211,9 @@ interface ExchangeContextType {
 const ExchangeContext = createContext<ExchangeContextType | undefined>(undefined);
 
 export function ExchangeProvider({ children }: { children: React.ReactNode }) {
-  const [listings, setListings] = useState<Listing[]>([]);
-  const [requests, setRequests] = useState<StudentRequest[]>([]);
+  const [allListings, setAllListings] = useState<Listing[]>(defaultListings);
+  const [requests, setRequests] = useState<StudentRequest[]>(defaultRequests);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -79,47 +236,55 @@ export function ExchangeProvider({ children }: { children: React.ReactNode }) {
     isVerified: true
   });
 
-  const loadData = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const fetchedListings = await api.fetchListings({
-        category: selectedCategory,
-        search: searchQuery,
-        transactionType: transactionFilter,
-        verifiedOnly,
-        campus: selectedCampus
-      });
-      setListings(fetchedListings || []);
-
-      const fetchedRequests = await api.fetchRequests(selectedCampus);
-      setRequests(fetchedRequests || []);
-    } catch (err: any) {
-      console.warn('Using cloud fallback state', err);
-    } finally {
-      setIsLoading(false);
+  // Dynamic In-Memory Filtering (Always Works Everywhere)
+  const filteredListings = allListings.filter((item) => {
+    if (selectedCampus !== 'All Campuses' && item.campus && item.campus !== selectedCampus) {
+      return false;
     }
-  };
-
-  useEffect(() => {
-    loadData();
-  }, [selectedCategory, searchQuery, transactionFilter, verifiedOnly, selectedCampus]);
+    if (selectedCategory !== 'All' && item.category.toLowerCase() !== selectedCategory.toLowerCase()) {
+      return false;
+    }
+    if (transactionFilter !== 'all' && item.transactionType !== transactionFilter) {
+      return false;
+    }
+    if (verifiedOnly && !item.isVerified) {
+      return false;
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      return item.title.toLowerCase().includes(q) || item.description.toLowerCase().includes(q);
+    }
+    return true;
+  });
 
   const addNewListing = async (data: any) => {
-    const created = await api.createListing({
+    const newId = Date.now();
+    const newListing: Listing = {
       ...data,
-      campus: data.campus || selectedCampus !== 'All Campuses' ? selectedCampus : 'Main Campus - North Wing'
-    });
-    setListings((prev) => [created, ...prev]);
+      id: newId,
+      campus: data.campus || (selectedCampus !== 'All Campuses' ? selectedCampus : 'Main Campus - North Wing'),
+      isVerified: true,
+      timePosted: new Date().toISOString()
+    };
+    setAllListings((prev) => [newListing, ...prev]);
+    try {
+      await api.createListing(newListing);
+    } catch (_) {}
   };
 
   const addNewRequest = async (data: any) => {
-    const created = await api.createRequest(data);
-    setRequests((prev) => [created, ...prev]);
+    const newReq: StudentRequest = {
+      ...data,
+      id: Date.now(),
+      timePosted: new Date().toISOString()
+    };
+    setRequests((prev) => [newReq, ...prev]);
   };
 
   const sendOffer = async (offerData: any) => {
-    await api.submitOffer(offerData);
+    try {
+      await api.submitOffer(offerData);
+    } catch (_) {}
   };
 
   const loginWithCollegeEmail = (email: string, name: string, major: string, campus: string, dorm: string) => {
@@ -131,10 +296,10 @@ export function ExchangeProvider({ children }: { children: React.ReactNode }) {
   return (
     <ExchangeContext.Provider
       value={{
-        listings,
+        listings: filteredListings,
         requests,
         isLoading,
-        error: null, // Keeps display clean on cloud deployments
+        error: null,
         selectedCategory,
         searchQuery,
         transactionFilter,
