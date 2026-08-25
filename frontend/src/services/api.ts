@@ -12,7 +12,7 @@ import {
 
 const isBrowser = typeof window !== 'undefined';
 const isLocalhost = isBrowser && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || (isLocalhost ? 'http://localhost:5000/api' : '');
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || (isLocalhost ? '' : '');
 
 let fallbackListings: Listing[] = [
   {
