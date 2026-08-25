@@ -1,5 +1,8 @@
 'use client';
 
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { Listing, StudentRequest } from '../types';
+
 export const CAMPUSES = [
   'All Campuses',
   'Main Campus - North Wing',
@@ -17,11 +20,6 @@ export const CATEGORIES = [
   'Tickets',
   'Free Giveaways'
 ];
-'use client';
-
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Listing, StudentRequest } from '../types';
-import * as api from '../services/api';
 
 const defaultListings: Listing[] = [
   {
@@ -255,7 +253,6 @@ export function ExchangeProvider({ children }: { children: React.ReactNode }) {
     isVerified: true
   });
 
-  // Dynamic In-Memory Filtering (Always Works Everywhere)
   const filteredListings = allListings.filter((item) => {
     if (selectedCampus !== 'All Campuses' && item.campus && item.campus !== selectedCampus) {
       return false;
@@ -286,9 +283,6 @@ export function ExchangeProvider({ children }: { children: React.ReactNode }) {
       timePosted: new Date().toISOString()
     };
     setAllListings((prev) => [newListing, ...prev]);
-    try {
-      await api.createListing(newListing);
-    } catch (_) {}
   };
 
   const addNewRequest = async (data: any) => {
@@ -301,9 +295,7 @@ export function ExchangeProvider({ children }: { children: React.ReactNode }) {
   };
 
   const sendOffer = async (offerData: any) => {
-    try {
-      await api.submitOffer(offerData);
-    } catch (_) {}
+    console.log('Offer submitted:', offerData);
   };
 
   const loginWithCollegeEmail = (email: string, name: string, major: string, campus: string, dorm: string) => {
@@ -317,7 +309,7 @@ export function ExchangeProvider({ children }: { children: React.ReactNode }) {
       value={{
         listings: filteredListings,
         requests,
-        isLoading,
+        isLoading: false,
         error: null,
         selectedCategory,
         searchQuery,
