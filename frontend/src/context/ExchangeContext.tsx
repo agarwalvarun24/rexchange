@@ -1,3 +1,5 @@
+'use client';
+
 export const CAMPUSES = [
   'All Campuses',
   'Main Campus - North Wing',
