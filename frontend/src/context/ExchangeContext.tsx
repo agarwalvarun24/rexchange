@@ -1,3 +1,20 @@
+export const CAMPUSES = [
+  'All Campuses',
+  'Main Campus - North Wing',
+  'South Campus - Tech Park',
+  'East Campus - Medical Block',
+  'West Hostel Complex'
+];
+
+export const CATEGORIES = [
+  'All',
+  'Textbooks',
+  'Electronics',
+  'Notes',
+  'Skills',
+  'Tickets',
+  'Free Giveaways'
+];
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
