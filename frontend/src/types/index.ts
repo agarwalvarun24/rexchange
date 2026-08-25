@@ -1,61 +1,42 @@
-// frontend/src/types/index.ts
-
-export type Category = 'textbooks' | 'electronics' | 'notes' | 'skills' | 'tickets' | 'giveaway';
-export type TransactionType = 'sell' | 'swap' | 'free' | 'skill_trade';
-export type Urgency = 'urgent' | 'moderate' | 'flexible';
-
 export interface Listing {
   id: number;
   title: string;
   description: string;
-  category: Category;
-  transactionType: TransactionType;
-  price: number;
-  swapWants: string;
+  category: string;
+  transactionType: 'sell' | 'swap' | 'free' | 'skill_trade';
+  price?: number;
+  swapWants?: string;
   condition: string;
+  campus?: string;
   locationTag: string;
-  campus: string;
   sellerName: string;
   sellerMajor: string;
-  isVerified: boolean;
+  isVerified?: boolean;
   timePosted: string;
 }
 
 export interface ExchangeOffer {
-  id: number;
+  id?: number;
   listingId: number;
   fromName: string;
   contact: string;
   offerDetails: string;
-  createdAt: string;
+  meetupLocation?: string;
+  status?: string;
+  createdAt?: string;
 }
 
-export type SafeLocation = string;
-
-export interface ListingFilters {
-  category?: Category;
-  search?: string;
-  transactionType?: TransactionType;
-  verifiedOnly?: boolean;
-  campus?: string;
-}
-
-export type CreateListingInput = Omit<Listing, 'id' | 'timePosted'>;
-export type CreateOfferInput = Omit<ExchangeOffer, 'id' | 'createdAt'>;
-
-// New types for requests and AI
 export interface StudentRequest {
   id: number;
   title: string;
   description: string;
-  category: Category;
+  category: string;
   campus: string;
   requesterName: string;
   requesterMajor: string;
-  reward: number; // ₹ amount, 0 if trade
-  urgency: Urgency;
+  reward?: string;
+  urgency: 'urgent' | 'moderate' | 'flexible';
   timePosted: string;
-  responsesCount: number;
 }
 
 export interface AIPricingSuggestion {
@@ -67,19 +48,51 @@ export interface AIPricingSuggestion {
   reason: string;
 }
 
-export interface RequestResponseInput {
+export interface ListingFilters {
+  category?: string;
+  search?: string;
+  transactionType?: string;
+  verifiedOnly?: boolean;
+  campus?: string;
+}
+
+export interface CreateListingInput {
+  title: string;
+  description: string;
+  category: string;
+  transactionType: 'sell' | 'swap' | 'free' | 'skill_trade';
+  price?: number;
+  swapWants?: string;
+  condition: string;
+  campus?: string;
+  locationTag: string;
+  sellerName: string;
+  sellerMajor: string;
+}
+
+export interface CreateOfferInput {
+  listingId: number;
   fromName: string;
   contact: string;
-  message?: string;
+  offerDetails: string;
+  meetupLocation?: string;
 }
 
 export interface CreateRequestInput {
   title: string;
   description: string;
-  category: Category;
+  category: string;
   campus: string;
   requesterName: string;
   requesterMajor: string;
-  reward: number;
-  urgency: Urgency;
+  reward?: string;
+  urgency: 'urgent' | 'moderate' | 'flexible';
 }
+
+export interface RequestResponseInput {
+  responderName: string;
+  contact: string;
+  message: string;
+}
+
+export type SafeLocation = string;
