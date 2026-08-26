@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Sparkles, Plus, Tag } from 'lucide-react';
+import { X, Sparkles, Plus, ShieldCheck } from 'lucide-react';
 import { useExchange, CAMPUSES } from '../context/ExchangeContext';
 
 export default function CreateListingModal() {
@@ -39,7 +39,7 @@ export default function CreateListingModal() {
       if (form.category === 'tickets') suggested = 450;
       
       setForm((prev) => ({ ...prev, price: String(suggested) }));
-      setAiSuggestion(`Suggested: ₹${suggested} (60% student discount applied) + Recommended Swaps: Course notes or Drafter.`);
+      setAiSuggestion(`Suggested: ₹${suggested} (60% student discount) + Recommended Swaps: Semester notes or Drafter.`);
       setAiLoading(false);
     }, 400);
   };
@@ -81,7 +81,7 @@ export default function CreateListingModal() {
             </div>
             <div>
               <h2 className="text-lg font-bold text-slate-900">Post a Campus Listing</h2>
-              <p className="text-xs text-slate-500">Sell, swap, trade skills, or giveaway to peers</p>
+              <p className="text-xs text-slate-500">Sell, swap, trade skills, or giveaway to verified peers</p>
             </div>
           </div>
           <button onClick={closeCreateModal} className="p-1.5 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-100">
@@ -214,11 +214,22 @@ export default function CreateListingModal() {
             </div>
           </div>
 
+          {/* Seller Authenticity Guarantee */}
+          <div className="p-3 bg-emerald-50/70 border border-emerald-200 rounded-xl text-xs text-emerald-900 flex items-start gap-2.5">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+            <div>
+              <strong>Campus Trust Verification Guarantee:</strong>
+              <p className="text-[11px] text-emerald-800 mt-0.5">
+                This item will be listed with your verified Student ID. You agree to safe meetup handover at designated campus zones.
+              </p>
+            </div>
+          </div>
+
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">Description *</label>
             <textarea
               name="description"
-              rows={3}
+              rows={2}
               value={form.description}
               onChange={handleChange}
               placeholder="Provide details on item condition, edition, or exchange terms..."
@@ -240,7 +251,7 @@ export default function CreateListingModal() {
               disabled={isSubmitting}
               className="px-6 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50"
             >
-              {isSubmitting ? 'Posting...' : 'Publish Listing →'}
+              {isSubmitting ? 'Posting...' : 'Publish Verified Listing →'}
             </button>
           </div>
         </form>
