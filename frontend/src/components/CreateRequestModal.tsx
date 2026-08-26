@@ -1,212 +1,178 @@
-// frontend/src/components/CreateRequestModal.tsx
 'use client';
 
-import React, { useState, FormEvent } from 'react';
-import { X, IndianRupee } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, AlertCircle } from 'lucide-react';
 import { useExchange, CAMPUSES } from '../context/ExchangeContext';
-import { Category, Urgency } from '../types';
 
-const CreateRequestModal = () => {
-  const { isCreateRequestModalOpen, closeCreateRequestModal, addNewRequest } = useExchange();
-  const [formData, setFormData] = useState({
+export default function CreateRequestModal() {
+  const { isCreateRequestModalOpen, closeCreateRequestModal, addNewRequest, currentUser } = useExchange();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [form, setForm] = useState({
     title: '',
     description: '',
-    category: 'textbooks' as Category,
-    campus: CAMPUSES[1], // first specific campus
-    requesterName: '',
-    requesterMajor: '',
-    reward: '',
-    urgency: 'moderate' as Urgency,
+    category: 'textbooks',
+    campus: 'Main Campus - North Wing',
+    urgency: 'urgent' as 'urgent' | 'moderate' | 'flexible',
+    reward: '₹100 Bounty',
+    requesterName: currentUser?.name || 'Student Member',
+    requesterMajor: currentUser?.major || 'Computer Science'
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isCreateRequestModalOpen) return null;
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title.trim() || !formData.description.trim() || !formData.requesterName || !formData.requesterMajor) {
-      alert('Please fill in all required fields');
-      return;
+    setIsSubmitting(true);
+    try {
+      await addNewRequest({
+        title: form.title,
+        description: form.description,
+        category: form.category,
+        campus: form.campus,
+        urgency: form.urgency,
+        reward: form.reward,
+        requesterName: form.requesterName || 'Student Member',
+        requesterMajor: form.requesterMajor || 'Engineering'
+      });
+      closeCreateRequestModal();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    await addNewRequest({
-      title: formData.title,
-      description: formData.description,
-      category: formData.category,
-      campus: formData.campus,
-      requesterName: formData.requesterName,
-      requesterMajor: formData.requesterMajor,
-      reward: formData.reward ? Number(formData.reward) : 0,
-      urgency: formData.urgency,
-    });
-
-    // Reset form
-    setFormData({
-      title: '',
-      description: '',
-      category: 'textbooks',
-      campus: CAMPUSES[1],
-      requesterName: '',
-      requesterMajor: '',
-      reward: '',
-      urgency: 'moderate',
-    });
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-start justify-center p-4 pt-10">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl">
-        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-          <h2 className="text-xl font-semibold text-gray-800">Post a Request / Bounty</h2>
-          <button onClick={closeCreateRequestModal} className="text-gray-400 hover:text-gray-600">
-            <X size={24} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
+      <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
+        
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+          <div className="flex items-center gap-2">
+            <div className="p-2 bg-amber-100 text-amber-700 rounded-lg">
+              <AlertCircle className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">Post a Student Request (Wanted)</h2>
+              <p className="text-xs text-slate-500">Ask peers for urgent exam gear, books, or notes</p>
+            </div>
+          </div>
+          <button onClick={closeCreateRequestModal} className="p-1.5 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-100">
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">What do you need? *</label>
             <input
               type="text"
               name="title"
-              value={formData.title}
+              value={form.title}
               onChange={handleChange}
+              placeholder="e.g., Need Drafter for Engineering Drawing Exam tomorrow"
               required
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="e.g., Need Drafter for Engineering Drawing Exam"
+              className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              required
-              rows={3}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="Describe what you need and any deadlines"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
-              <select
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="textbooks">Textbooks</option>
-                <option value="electronics">Electronics</option>
-                <option value="notes">Notes</option>
-                <option value="skills">Skills</option>
-                <option value="tickets">Tickets</option>
-                <option value="giveaway">Giveaway</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Urgency *</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Urgency Level *</label>
               <select
                 name="urgency"
-                value={formData.urgency}
+                value={form.urgency}
                 onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white font-medium"
               >
-                <option value="urgent">🔴 Urgent (Today)</option>
-                <option value="moderate">🟡 Moderate</option>
+                <option value="urgent">🔴 URGENT (Needed Today / Exam)</option>
+                <option value="moderate">🟡 Moderate (Needed this week)</option>
                 <option value="flexible">🟢 Flexible</option>
               </select>
             </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Optional Reward / Bounty</label>
+              <input
+                type="text"
+                name="reward"
+                value={form.reward}
+                onChange={handleChange}
+                placeholder="e.g. ₹150 Bounty or Free Coffee"
+                className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Reward / Bounty (₹, optional)</label>
-              <div className="relative">
-                <IndianRupee size={16} className="absolute left-3 top-2.5 text-gray-400" />
-                <input
-                  type="number"
-                  name="reward"
-                  value={formData.reward}
-                  onChange={handleChange}
-                  min="0"
-                  className="w-full border border-gray-300 rounded-lg pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="0 (trade)"
-                />
-              </div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Category *</label>
+              <select
+                name="category"
+                value={form.category}
+                onChange={handleChange}
+                className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+              >
+                <option value="textbooks">Textbooks</option>
+                <option value="electronics">Electronics & Tools</option>
+                <option value="notes">Notes & Study Guides</option>
+                <option value="skills">Skill / Tutoring Help</option>
+                <option value="tickets">Campus Tickets</option>
+                <option value="giveaway">Borrow / Giveaway</option>
+              </select>
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Campus Zone *</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Campus Location *</label>
               <select
                 name="campus"
-                value={formData.campus}
+                value={form.campus}
                 onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
               >
-                {CAMPUSES.filter(c => c !== 'All Campuses').map((campus) => (
-                  <option key={campus} value={campus}>{campus}</option>
+                {CAMPUSES.filter(c => c !== 'All Campuses').map((c) => (
+                  <option key={c} value={c}>{c}</option>
                 ))}
               </select>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Your Name *</label>
-              <input
-                type="text"
-                name="requesterName"
-                value={formData.requesterName}
-                onChange={handleChange}
-                required
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="e.g., Ravi Kumar"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Your Major *</label>
-              <input
-                type="text"
-                name="requesterMajor"
-                value={formData.requesterMajor}
-                onChange={handleChange}
-                required
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="e.g., Mechanical Engineering"
-              />
-            </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">Details & Urgency Reason *</label>
+            <textarea
+              name="description"
+              rows={3}
+              value={form.description}
+              onChange={handleChange}
+              placeholder="Explain when and where you need this on campus..."
+              required
+              className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            />
           </div>
 
-          <div className="flex justify-end space-x-3 pt-4">
+          <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
             <button
               type="button"
               onClick={closeCreateRequestModal}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
+              className="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg disabled:opacity-50"
+              className="px-6 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50"
             >
-              {isSubmitting ? 'Posting...' : 'Post Request'}
+              {isSubmitting ? 'Posting...' : 'Post Request →'}
             </button>
           </div>
         </form>
       </div>
     </div>
   );
-};
-
-export default CreateRequestModal;
+}

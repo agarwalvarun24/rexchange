@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import { Listing, StudentRequest } from '../types';
 
 export const CAMPUSES = [
@@ -159,8 +159,8 @@ const defaultRequests: StudentRequest[] = [
     description: 'Exam at 9 AM, urgently need a mini drafter in good condition.',
     category: 'electronics',
     campus: 'South Campus - Tech Park',
-    requesterName: 'Varun A.',
-    requesterMajor: 'Mechanical',
+    requesterName: 'Aman Verma',
+    requesterMajor: 'Mechanical Engineering',
     reward: '₹150 Bounty',
     urgency: 'urgent',
     timePosted: '2025-04-15T14:00:00Z'
@@ -172,14 +172,14 @@ const defaultRequests: StudentRequest[] = [
     category: 'giveaway',
     campus: 'West Hostel Complex',
     requesterName: 'Rahul M.',
-    requesterMajor: 'CSE',
+    requesterMajor: 'Computer Science',
     reward: 'Coffee / Snack',
     urgency: 'urgent',
     timePosted: '2025-04-15T15:30:00Z'
   }
 ];
 
-interface User {
+export interface User {
   name: string;
   email: string;
   major: string;
@@ -230,7 +230,9 @@ const ExchangeContext = createContext<ExchangeContextType | undefined>(undefined
 export function ExchangeProvider({ children }: { children: React.ReactNode }) {
   const [allListings, setAllListings] = useState<Listing[]>(defaultListings);
   const [requests, setRequests] = useState<StudentRequest[]>(defaultRequests);
-  const [isLoading, setIsLoading] = useState(false);
+  
+  // Default to null so every page refresh starts in unverified/guest state
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -243,15 +245,6 @@ export function ExchangeProvider({ children }: { children: React.ReactNode }) {
   const [isCreateRequestModalOpen, setIsCreateRequestModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [selectedListingForModal, setSelectedListingForModal] = useState<Listing | null>(null);
-
-  const [currentUser, setCurrentUser] = useState<User | null>({
-    name: 'Varun Agarwal',
-    email: 'varun@campus.edu',
-    major: 'Computer Science',
-    campus: 'Main Campus - North Wing',
-    dorm: 'Hostel A',
-    isVerified: true
-  });
 
   const filteredListings = allListings.filter((item) => {
     if (selectedCampus !== 'All Campuses' && item.campus && item.campus !== selectedCampus) {
@@ -274,10 +267,9 @@ export function ExchangeProvider({ children }: { children: React.ReactNode }) {
   });
 
   const addNewListing = async (data: any) => {
-    const newId = Date.now();
     const newListing: Listing = {
       ...data,
-      id: newId,
+      id: Date.now(),
       campus: data.campus || (selectedCampus !== 'All Campuses' ? selectedCampus : 'Main Campus - North Wing'),
       isVerified: true,
       timePosted: new Date().toISOString()

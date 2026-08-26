@@ -1,379 +1,250 @@
-// frontend/src/components/CreateListingModal.tsx
 'use client';
 
-import React, { useState, useEffect, FormEvent } from 'react';
-import { X, MapPin, IndianRupee, Sparkles, Check } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Sparkles, Plus, Tag } from 'lucide-react';
 import { useExchange, CAMPUSES } from '../context/ExchangeContext';
-import { CreateListingInput, Category, TransactionType, AIPricingSuggestion } from '../types';
-import { fetchSafeLocations, getAISuggestion } from '../services/api';
 
-const CreateListingModal = () => {
-  const { isCreateModalOpen, closeCreateModal, addNewListing } = useExchange();
-  const [safeLocations, setSafeLocations] = useState<string[]>([]);
-  const [formData, setFormData] = useState({
+export default function CreateListingModal() {
+  const { isCreateModalOpen, closeCreateModal, addNewListing, currentUser } = useExchange();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
+
+  const [form, setForm] = useState({
     title: '',
     description: '',
-    category: 'textbooks' as Category,
-    transactionType: 'sell' as TransactionType,
+    category: 'textbooks',
+    transactionType: 'sell',
     price: '',
     swapWants: '',
     condition: 'Good',
-    locationTag: '',
-    campus: CAMPUSES[1],
-    sellerName: '',
-    sellerMajor: '',
+    campus: 'Main Campus - North Wing',
+    locationTag: 'Central Library Foyer',
+    sellerName: currentUser?.name || 'Student Member',
+    sellerMajor: currentUser?.major || 'Computer Science'
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  // AI suggestion state
-  const [aiSuggestion, setAiSuggestion] = useState<AIPricingSuggestion | null>(null);
-  const [isLoadingAI, setIsLoadingAI] = useState(false);
-
-  useEffect(() => {
-    if (isCreateModalOpen) {
-      fetchSafeLocations()
-        .then((locations) => {
-          setSafeLocations(locations);
-          if (locations.length > 0 && !formData.locationTag) {
-            setFormData((prev) => ({ ...prev, locationTag: locations[0] }));
-          }
-        })
-        .catch(() => {
-          setSafeLocations([
-            'Central Library Foyer',
-            'Student Activity Center',
-            'Main Canteen',
-            'Engineering Block Entrance',
-          ]);
-        });
-    }
-  }, [isCreateModalOpen]);
 
   if (!isCreateModalOpen) return null;
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleAIClick = async () => {
-    if (!formData.title || !formData.category || !formData.condition) {
-      alert('Please fill in title, category, and condition first');
-      return;
-    }
-    setIsLoadingAI(true);
-    try {
-      const suggestion = await getAISuggestion(formData.title, formData.category, formData.condition);
-      setAiSuggestion(suggestion);
-    } catch (err) {
-      alert('Failed to get AI suggestion');
-    } finally {
-      setIsLoadingAI(false);
-    }
+  const handleAiEstimate = () => {
+    setAiLoading(true);
+    setTimeout(() => {
+      let suggested = 400;
+      if (form.category === 'electronics') suggested = 1200;
+      if (form.category === 'notes') suggested = 150;
+      if (form.category === 'tickets') suggested = 450;
+      
+      setForm((prev) => ({ ...prev, price: String(suggested) }));
+      setAiSuggestion(`Suggested: ₹${suggested} (60% student discount applied) + Recommended Swaps: Course notes or Drafter.`);
+      setAiLoading(false);
+    }, 400);
   };
 
-  const applySuggestion = () => {
-    if (aiSuggestion && formData.transactionType === 'sell') {
-      setFormData((prev) => ({ ...prev, price: String(aiSuggestion.suggestedPrice) }));
-    }
-    // Could also prefill swapWants if swap/skill
-    if (aiSuggestion && (formData.transactionType === 'swap' || formData.transactionType === 'skill_trade')) {
-      setFormData((prev) => ({ ...prev, swapWants: aiSuggestion.swapRecommendations[0] || prev.swapWants }));
-    }
-    setAiSuggestion(null); // hide card after applying
-  };
-
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title.trim() || !formData.description.trim() || !formData.locationTag || !formData.campus) {
-      alert('Please fill in all required fields');
-      return;
-    }
-
-    const listingData: CreateListingInput = {
-      title: formData.title,
-      description: formData.description,
-      category: formData.category,
-      transactionType: formData.transactionType,
-      price: formData.transactionType === 'sell' ? Number(formData.price) || 0 : 0,
-      swapWants: formData.transactionType === 'swap' || formData.transactionType === 'skill_trade'
-        ? formData.swapWants
-        : '',
-      condition: formData.condition,
-      locationTag: formData.locationTag,
-      campus: formData.campus,
-      sellerName: formData.sellerName,
-      sellerMajor: formData.sellerMajor,
-      isVerified: true,
-    };
-
     setIsSubmitting(true);
     try {
-      await addNewListing(listingData);
-      setFormData({
-        title: '',
-        description: '',
-        category: 'textbooks',
-        transactionType: 'sell',
-        price: '',
-        swapWants: '',
-        condition: 'Good',
-        locationTag: safeLocations[0] || '',
-        campus: CAMPUSES[1],
-        sellerName: '',
-        sellerMajor: '',
+      await addNewListing({
+        title: form.title,
+        description: form.description,
+        category: form.category,
+        transactionType: form.transactionType as any,
+        price: form.price ? Number(form.price) : 0,
+        swapWants: form.swapWants,
+        condition: form.condition,
+        campus: form.campus,
+        locationTag: form.locationTag,
+        sellerName: form.sellerName || 'Student Member',
+        sellerMajor: form.sellerMajor || 'Engineering'
       });
-      setAiSuggestion(null);
-    } catch (error) {
-      alert('Failed to create listing. Please try again.');
+      closeCreateModal();
+    } catch (err) {
+      console.error(err);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-start justify-center p-4 pt-10">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl">
-        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-          <h2 className="text-xl font-semibold text-gray-800">Post New Listing</h2>
-          <button onClick={closeCreateModal} className="text-gray-400 hover:text-gray-600">
-            <X size={24} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
+      <div className="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
+        
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+          <div className="flex items-center gap-2">
+            <div className="p-2 bg-indigo-100 text-indigo-700 rounded-lg">
+              <Plus className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">Post a Campus Listing</h2>
+              <p className="text-xs text-slate-500">Sell, swap, trade skills, or giveaway to peers</p>
+            </div>
+          </div>
+          <button onClick={closeCreateModal} className="p-1.5 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-100">
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          {/* Title & AI helper */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                required
-                className="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="e.g., Calculus Book 8th Edition"
-              />
-              <button
-                type="button"
-                onClick={handleAIClick}
-                disabled={isLoadingAI}
-                className="inline-flex items-center gap-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm px-3 py-2 rounded-lg hover:from-amber-600 hover:to-orange-600 transition-colors"
-              >
-                <Sparkles size={16} />
-                AI Price & Barter
-              </button>
-            </div>
-          </div>
-
-          {/* AI Suggestion Card */}
-          {aiSuggestion && (
-            <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl p-4">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold text-indigo-900">⚡ AI Fair-Price & Barter Matcher</h3>
-                <button
-                  type="button"
-                  onClick={applySuggestion}
-                  className="text-sm font-medium text-indigo-700 bg-white hover:bg-indigo-100 px-3 py-1 rounded-full transition-colors"
-                >
-                  Apply Suggestion
-                </button>
-              </div>
-              <p className="text-sm text-indigo-800 mb-2">
-                Suggested Price: <span className="font-bold">₹{aiSuggestion.suggestedPrice}</span> (₹{aiSuggestion.minPrice} - ₹{aiSuggestion.maxPrice}) · Save {aiSuggestion.savingsPercentage}% vs new
-              </p>
-              <p className="text-xs text-indigo-600 mb-2">{aiSuggestion.reason}</p>
-              <div>
-                <p className="text-sm font-medium text-indigo-800 mb-1">Smart Barter Ideas:</p>
-                <ul className="list-disc list-inside text-xs text-indigo-700 space-y-1">
-                  {aiSuggestion.swapRecommendations.slice(0, 2).map((rec, idx) => (
-                    <li key={idx}>{rec}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
-            <textarea
-              name="description"
-              value={formData.description}
+            <label className="block text-xs font-semibold text-slate-700 mb-1">Item Title *</label>
+            <input
+              type="text"
+              name="title"
+              value={form.title}
               onChange={handleChange}
+              placeholder="e.g., Calculus Early Transcendentals 8th Ed"
               required
-              rows={3}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="Describe condition, details, etc."
+              className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Category *</label>
               <select
                 name="category"
-                value={formData.category}
+                value={form.category}
                 onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
               >
                 <option value="textbooks">Textbooks</option>
-                <option value="electronics">Electronics</option>
-                <option value="notes">Notes</option>
-                <option value="skills">Skills</option>
-                <option value="tickets">Tickets</option>
-                <option value="giveaway">Giveaway</option>
+                <option value="electronics">Electronics & Accessories</option>
+                <option value="notes">Study Notes & PDFs</option>
+                <option value="skills">Peer Skill Trade</option>
+                <option value="tickets">Campus Event Tickets</option>
+                <option value="giveaway">Free Giveaways</option>
               </select>
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Transaction Type *</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Transaction Type *</label>
               <select
                 name="transactionType"
-                value={formData.transactionType}
+                value={form.transactionType}
                 onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
               >
-                <option value="sell">For Sale</option>
-                <option value="swap">Barter/Swap</option>
-                <option value="free">Free</option>
-                <option value="skill_trade">Skill Trade</option>
+                <option value="sell">For Sale (Cash ₹)</option>
+                <option value="swap">Barter / Item Swap</option>
+                <option value="skill_trade">Skill Exchange</option>
+                <option value="free">100% Free Giveaway</option>
               </select>
             </div>
           </div>
 
-          {formData.transactionType === 'sell' && (
+          {/* Pricing / Swap Details */}
+          {form.transactionType === 'sell' ? (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹) *</label>
-              <div className="relative">
-                <IndianRupee size={16} className="absolute left-3 top-2.5 text-gray-400" />
-                <input
-                  type="number"
-                  name="price"
-                  value={formData.price}
-                  onChange={handleChange}
-                  required
-                  min="0"
-                  step="1"
-                  className="w-full border border-gray-300 rounded-lg pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="0"
-                />
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-semibold text-slate-700">Price in Rupees (₹) *</label>
+                <button
+                  type="button"
+                  onClick={handleAiEstimate}
+                  disabled={aiLoading}
+                  className="text-xs font-medium text-purple-600 hover:text-purple-700 flex items-center gap-1"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  {aiLoading ? 'Estimating...' : '⚡ AI Fair Price Suggest'}
+                </button>
               </div>
+              <input
+                type="number"
+                name="price"
+                value={form.price}
+                onChange={handleChange}
+                placeholder="₹ e.g. 450"
+                required
+                className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+              {aiSuggestion && (
+                <p className="mt-1.5 text-xs text-purple-700 bg-purple-50 p-2 rounded-lg border border-purple-100">
+                  {aiSuggestion}
+                </p>
+              )}
             </div>
-          )}
-
-          {(formData.transactionType === 'swap' || formData.transactionType === 'skill_trade') && (
+          ) : form.transactionType !== 'free' ? (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                What do you want in return? *
-              </label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">What would you like in return? *</label>
               <input
                 type="text"
                 name="swapWants"
-                value={formData.swapWants}
+                value={form.swapWants}
                 onChange={handleChange}
+                placeholder="e.g., Need DBMS notes, coffee, or Python tutoring"
                 required
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="e.g., Python help, guitar lessons, coffee"
+                className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
               />
             </div>
-          )}
+          ) : null}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Condition</label>
-              <select
-                name="condition"
-                value={formData.condition}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="New">New</option>
-                <option value="Like New">Like New</option>
-                <option value="Good">Good</option>
-                <option value="Fair">Fair</option>
-                <option value="Digital PDF">Digital PDF</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Campus Zone *</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Campus Zone *</label>
               <select
                 name="campus"
-                value={formData.campus}
+                value={form.campus}
                 onChange={handleChange}
-                required
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
               >
-                {CAMPUSES.filter(c => c !== 'All Campuses').map((campus) => (
-                  <option key={campus} value={campus}>{campus}</option>
+                {CAMPUSES.filter(c => c !== 'All Campuses').map((c) => (
+                  <option key={c} value={c}>{c}</option>
                 ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Condition</label>
+              <select
+                name="condition"
+                value={form.condition}
+                onChange={handleChange}
+                className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+              >
+                <option value="New">Brand New / Sealed</option>
+                <option value="Like New">Like New</option>
+                <option value="Good">Good Condition</option>
+                <option value="Fair">Fair / Usable</option>
+                <option value="Digital PDF">Digital PDF</option>
               </select>
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Campus Meetup Location *</label>
-            <select
-              name="locationTag"
-              value={formData.locationTag}
+            <label className="block text-xs font-semibold text-slate-700 mb-1">Description *</label>
+            <textarea
+              name="description"
+              rows={3}
+              value={form.description}
               onChange={handleChange}
+              placeholder="Provide details on item condition, edition, or exchange terms..."
               required
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="">Select location</option>
-              {safeLocations.map((loc) => (
-                <option key={loc} value={loc}>{loc}</option>
-              ))}
-            </select>
+              className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Your Name *</label>
-              <input
-                type="text"
-                name="sellerName"
-                value={formData.sellerName}
-                onChange={handleChange}
-                required
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="e.g., John Doe"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Your Major *</label>
-              <input
-                type="text"
-                name="sellerMajor"
-                value={formData.sellerMajor}
-                onChange={handleChange}
-                required
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="e.g., Computer Science"
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end space-x-3 pt-4">
+          <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
             <button
               type="button"
               onClick={closeCreateModal}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              className="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors disabled:opacity-50"
+              className="px-6 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50"
             >
-              {isSubmitting ? 'Posting...' : 'Post Listing'}
+              {isSubmitting ? 'Posting...' : 'Publish Listing →'}
             </button>
           </div>
         </form>
       </div>
     </div>
   );
-};
-
-export default CreateListingModal;
+}
