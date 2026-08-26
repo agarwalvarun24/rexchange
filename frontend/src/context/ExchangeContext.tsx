@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Listing, StudentRequest } from '../types';
 
 export const CAMPUSES = [
@@ -200,6 +200,8 @@ interface ExchangeContextType {
   selectedCampus: string;
   activeTab: 'marketplace' | 'requests';
   currentUser: User | null;
+  darkMode: boolean;
+  toggleDarkMode: () => void;
   isCreateModalOpen: boolean;
   isCreateRequestModalOpen: boolean;
   isAuthModalOpen: boolean;
@@ -230,9 +232,36 @@ const ExchangeContext = createContext<ExchangeContextType | undefined>(undefined
 export function ExchangeProvider({ children }: { children: React.ReactNode }) {
   const [allListings, setAllListings] = useState<Listing[]>(defaultListings);
   const [requests, setRequests] = useState<StudentRequest[]>(defaultRequests);
-  
-  // Default to null so every page refresh starts in unverified/guest state
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const isDark = localStorage.getItem('theme') === 'dark';
+      setDarkMode(isDark);
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+  }, []);
+
+  const toggleDarkMode = () => {
+    setDarkMode((prev) => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('theme', next ? 'dark' : 'light');
+        if (next) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }
+      return next;
+    });
+  };
 
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -310,6 +339,8 @@ export function ExchangeProvider({ children }: { children: React.ReactNode }) {
         selectedCampus,
         activeTab,
         currentUser,
+        darkMode,
+        toggleDarkMode,
         isCreateModalOpen,
         isCreateRequestModalOpen,
         isAuthModalOpen,
