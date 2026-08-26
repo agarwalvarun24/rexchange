@@ -1,174 +1,111 @@
-// frontend/src/components/ListingCard.tsx
 'use client';
 
-import React, { useState } from 'react';
-import { MapPin, ShieldCheck, ArrowRight, Tag, Star, Building2, X, CheckCircle2, ShieldAlert } from 'lucide-react';
+import React from 'react';
 import { Listing } from '../types';
 import { useExchange } from '../context/ExchangeContext';
+import { MapPin, ShieldCheck, ArrowRight, Sparkles, Star } from 'lucide-react';
 
 interface ListingCardProps {
   listing: Listing;
 }
 
-const transactionTypeStyles: Record<string, string> = {
-  sell: 'bg-amber-50 text-amber-700 border-amber-200',
-  swap: 'bg-blue-50 text-blue-700 border-blue-200',
-  free: 'bg-green-50 text-green-700 border-green-200',
-  skill_trade: 'bg-purple-50 text-purple-700 border-purple-200',
-};
-
-const categoryLabels: Record<string, string> = {
-  textbooks: 'Textbook',
-  electronics: 'Electronics',
-  notes: 'Notes',
-  skills: 'Skill',
-  tickets: 'Ticket',
-  giveaway: 'Giveaway',
-};
-
-const getMockRating = (id: number): { score: number; exchanges: number } => {
-  const score = (3.5 + (id % 5) * 0.3).toFixed(1);
-  const exchanges = 10 + (id * 7) % 40;
-  return { score: parseFloat(score), exchanges };
-};
-
-const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
+export default function ListingCard({ listing }: ListingCardProps) {
   const { openItemModal } = useExchange();
-  const { score, exchanges } = getMockRating(listing.id);
-  const [showVerifiedTooltip, setShowVerifiedTooltip] = useState(false);
 
-  const transactionLabel =
-    listing.transactionType === 'sell' ? `FOR SALE · ₹${listing.price}` :
-    listing.transactionType === 'swap' ? 'BARTER / SWAP' :
-    listing.transactionType === 'free' ? 'FREE GIVEAWAY' :
-    listing.transactionType === 'skill_trade' ? 'SKILL TRADE' : '';
+  const getBadgeStyle = () => {
+    switch (listing.transactionType) {
+      case 'free':
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200 font-black';
+      case 'swap':
+        return 'bg-blue-50 text-blue-700 border-blue-200 font-bold';
+      case 'skill_trade':
+        return 'bg-purple-50 text-purple-700 border-purple-200 font-bold';
+      default:
+        return 'bg-amber-50 text-amber-800 border-amber-200 font-black';
+    }
+  };
+
+  const sellerInitial = listing.sellerName ? listing.sellerName.charAt(0) : 'S';
+  const sellerRating = (4.5 + ((listing.id * 0.1) % 0.5)).toFixed(1);
 
   return (
-    <div className="relative bg-white rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 p-5 flex flex-col border border-gray-100">
-      {/* Top row: badges */}
-      <div className="flex items-center justify-between mb-3">
-        <span className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border ${transactionTypeStyles[listing.transactionType] || 'bg-gray-50 text-gray-700 border-gray-200'}`}>
-          {transactionLabel}
-        </span>
-        <span className="text-xs text-gray-500 flex items-center gap-1">
-          <Tag size={12} />
-          {categoryLabels[listing.category] || listing.category}
-        </span>
-      </div>
-
-      {/* Title */}
-      <h3 className="text-lg font-semibold text-gray-800 mb-1 line-clamp-2">
-        {listing.title}
-      </h3>
-
-      {/* Condition tag */}
-      {listing.condition && listing.condition !== 'N/A' && (
-        <div className="mb-2">
-          <span className="inline-block bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">
-            {listing.condition}
+    <div 
+      onClick={() => openItemModal(listing)}
+      className="group relative bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm hover:shadow-xl hover:border-indigo-300 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer flex flex-col justify-between"
+    >
+      <div className="space-y-3">
+        {/* Top Badges */}
+        <div className="flex items-center justify-between gap-2">
+          <span className={`px-2.5 py-1 text-[10px] uppercase tracking-wider rounded-lg border ${getBadgeStyle()}`}>
+            {listing.transactionType === 'sell' ? `FOR SALE • ₹${listing.price}` : listing.transactionType.replace('_', ' ')}
+          </span>
+          <span className="px-2 py-0.5 text-[11px] font-semibold text-slate-500 bg-slate-100 rounded-md capitalize">
+            {listing.category}
           </span>
         </div>
-      )}
 
-      {/* Price or swap wish */}
-      <div className="flex-1">
-        {listing.transactionType === 'sell' && listing.price > 0 ? (
-          <p className="text-indigo-600 font-bold text-xl">₹{listing.price}</p>
-        ) : listing.transactionType === 'swap' || listing.transactionType === 'skill_trade' ? (
-          <p className="text-sm text-gray-600">
-            <span className="font-medium">Wants:</span> {listing.swapWants || 'Open to offers'}
-          </p>
-        ) : listing.transactionType === 'free' ? (
-          <p className="text-green-600 font-medium text-sm">Free</p>
-        ) : null}
-      </div>
+        {/* Title & Condition */}
+        <div>
+          <h3 className="text-sm font-bold text-slate-900 line-clamp-2 group-hover:text-indigo-600 transition-colors">
+            {listing.title}
+          </h3>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-[11px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-slate-200/60">
+              {listing.condition}
+            </span>
+          </div>
+        </div>
 
-      {/* Location */}
-      <div className="flex items-center gap-1.5 text-sm text-gray-500 mt-3 bg-gray-50 rounded-md px-2 py-1">
-        <MapPin size={14} className="text-indigo-500" />
-        <span className="truncate">{listing.locationTag}</span>
-      </div>
-
-      {/* Seller info + trust score + verified item badge */}
-      <div className="flex items-center justify-between mt-3 border-t border-gray-100 pt-3">
-        <div className="flex items-center gap-1.5 min-w-0 flex-1">
-          <span className="text-xs font-medium text-gray-700 truncate">{listing.sellerName}</span>
-          <span className="text-xs text-gray-400">•</span>
-          <span className="text-xs text-gray-500 truncate">{listing.sellerMajor}</span>
-          {listing.isVerified && (
-            <ShieldCheck size={16} className="text-green-500 shrink-0" />
+        {/* Pricing / Swap Details */}
+        <div className="pt-1">
+          {listing.transactionType === 'free' ? (
+            <span className="text-xl font-black text-emerald-600">FREE</span>
+          ) : listing.transactionType === 'sell' ? (
+            <div className="flex items-baseline gap-1">
+              <span className="text-xl font-black text-slate-900">₹{listing.price}</span>
+              <span className="text-[10px] text-slate-400 font-medium line-through">₹{Math.round((listing.price || 400) * 2.2)}</span>
+            </div>
+          ) : (
+            <div className="p-2 bg-purple-50/70 border border-purple-100 rounded-xl text-[11px] text-purple-900 font-medium flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+              <span className="truncate"><strong>Wants:</strong> {listing.swapWants || 'Open for exchange'}</span>
+            </div>
           )}
         </div>
-        <div className="flex items-center gap-1 text-xs text-gray-500 ml-2 shrink-0" title="Trust score">
-          <Star size={12} className="text-amber-500 fill-amber-500" />
-          <span>{score} · Verified</span>
+
+        {/* Location Tag */}
+        <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
+          <MapPin className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+          <span className="truncate">{listing.locationTag || 'Campus Safe Zone'}</span>
         </div>
       </div>
 
-      {/* Verified Item pill badge with tooltip */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          setShowVerifiedTooltip(!showVerifiedTooltip);
-        }}
-        className="mt-2 w-full flex items-center justify-center gap-1.5 text-xs font-medium bg-green-50 text-green-700 border border-green-200 rounded-full py-1.5 hover:bg-green-100 transition-colors"
-      >
-        <ShieldCheck size={14} className="text-green-600" />
-        🛡️ Verified Item
-      </button>
-
-      {/* Campus tag */}
-      {listing.campus && (
-        <div className="mt-2 flex items-center gap-1 text-xs text-gray-400">
-          <Building2 size={12} />
-          <span>{listing.campus}</span>
-        </div>
-      )}
-
-      {/* CTA button */}
-      <button
-        onClick={() => openItemModal(listing)}
-        className="mt-4 w-full inline-flex items-center justify-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-medium text-sm py-2 rounded-lg transition-colors"
-      >
-        Make Offer / Details
-        <ArrowRight size={16} />
-      </button>
-
-      {/* Tooltip popover */}
-      {showVerifiedTooltip && (
-        <div className="absolute z-30 left-1/2 transform -translate-x-1/2 bottom-20 w-64 bg-white border border-gray-200 shadow-xl rounded-xl p-4">
-          <div className="flex items-center justify-between mb-2">
-            <h4 className="text-sm font-semibold text-gray-800 flex items-center gap-1">
-              <ShieldCheck size={16} className="text-green-600" /> Campus Verified Item
-            </h4>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowVerifiedTooltip(false);
-              }}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <X size={14} />
-            </button>
+      {/* Seller Credentials Card */}
+      <div className="mt-4 pt-3 border-t border-slate-100 space-y-2.5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold text-[10px] flex items-center justify-center shadow-xs">
+              {sellerInitial}
+            </div>
+            <div className="text-[11px] font-bold text-slate-800 truncate max-w-[120px]">
+              {listing.sellerName}
+            </div>
           </div>
-          <ul className="space-y-1.5 text-xs text-gray-600">
-            <li className="flex items-start gap-1.5">
-              <CheckCircle2 size={14} className="text-green-500 mt-0.5 shrink-0" />
-              Student ID & Hostel Block Confirmed
-            </li>
-            <li className="flex items-start gap-1.5">
-              <CheckCircle2 size={14} className="text-green-500 mt-0.5 shrink-0" />
-              Live Photo Possession Check Passed
-            </li>
-            <li className="flex items-start gap-1.5">
-              <CheckCircle2 size={14} className="text-green-500 mt-0.5 shrink-0" />
-              Protected by Safe Meetup Handover OTP
-            </li>
-          </ul>
+          <div className="flex items-center gap-1 text-[11px] font-bold text-amber-500">
+            <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+            <span>{sellerRating}</span>
+          </div>
         </div>
-      )}
+
+        {/* Action Button */}
+        <button
+          type="button"
+          className="w-full py-2 px-3 text-xs font-bold text-indigo-600 bg-indigo-50/70 group-hover:bg-indigo-600 group-hover:text-white rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5"
+        >
+          <span>View Details & Offer</span>
+          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+        </button>
+      </div>
     </div>
   );
-};
-
-export default ListingCard;
+}

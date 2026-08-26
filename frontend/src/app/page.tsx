@@ -1,174 +1,179 @@
-// frontend/src/app/page.tsx
 'use client';
 
 import React from 'react';
-import { ExchangeProvider, useExchange } from '../context/ExchangeContext';
+import { useExchange } from '../context/ExchangeContext';
 import Navbar from '../components/Navbar';
 import FilterBar from '../components/FilterBar';
 import ListingCard from '../components/ListingCard';
+import RequestBoard from '../components/RequestBoard';
 import CreateListingModal from '../components/CreateListingModal';
+import CreateRequestModal from '../components/CreateRequestModal';
 import ItemDetailsModal from '../components/ItemDetailsModal';
 import AuthModal from '../components/AuthModal';
-import RequestBoard from '../components/RequestBoard';
-import CreateRequestModal from '../components/CreateRequestModal';
-import { Loader2, SearchX, Package, IndianRupee, Zap, ShieldCheck, PlusCircle, Megaphone } from 'lucide-react';
+import { Package, TrendingUp, ShieldCheck, Zap, Sparkles, Inbox } from 'lucide-react';
 
-function HomeContent() {
+export default function Home() {
   const {
     listings,
     requests,
-    isLoading,
-    error,
     activeTab,
     setActiveTab,
-    selectedCategory,
-    searchQuery,
-    transactionFilter,
-    verifiedOnly,
-    setSelectedCategory,
-    setSearchQuery,
-    setTransactionFilter,
-    setVerifiedOnly,
     selectedCampus,
-    openCreateRequestModal,
+    selectedCategory,
+    openCreateModal,
+    openCreateRequestModal
   } = useExchange();
 
-  const clearFilters = () => {
-    setSelectedCategory(null);
-    setSearchQuery('');
-    setTransactionFilter(null);
-    setVerifiedOnly(false);
-  };
-
-  const hasActiveFilters = selectedCategory || searchQuery || transactionFilter || verifiedOnly || selectedCampus !== 'All Campuses';
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30">
+    <div className="min-h-screen bg-[#f8fafc] flex flex-col font-sans">
       <Navbar />
 
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-center mb-4">
-            Exchange Gear, Notes & Skills Within Your Campus
-          </h1>
-          <div className="flex flex-wrap justify-center gap-3 text-sm">
-            <span className="inline-flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">
-              <Package size={16} className="text-amber-300" />
-              📦 180+ Items Traded
-            </span>
-            <span className="inline-flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">
-              <IndianRupee size={16} className="text-green-300" />
-              ₹3,40,000+ Saved by Students
-            </span>
-            <span className="inline-flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">
-              <ShieldCheck size={16} className="text-blue-300" />
-              100% Verified Campus Peers
-            </span>
-            <span className="inline-flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">
-              <Zap size={16} className="text-yellow-300" />
-              Avg. Meetup: Under 15 Mins
-            </span>
+      {/* Hero Section with Ambient Glow */}
+      <section className="relative overflow-hidden hero-glow pt-8 pb-10 border-b border-slate-200/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold shadow-sm">
+              <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Campus Circular Economy</span>
+            </div>
+
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+              Trade Gear, Notes & Skills with <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600">Verified Peers</span>
+            </h1>
+
+            <p className="text-sm text-slate-600 max-w-xl mx-auto">
+              Save money and reduce campus waste. Swap textbooks, borrow exam tools, and trade tutoring hours within your college community.
+            </p>
+          </div>
+
+          {/* Metric Cards Banner */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-4xl mx-auto mt-7">
+            <div className="glass-card p-3.5 rounded-2xl shadow-sm hover:shadow-md transition-all flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-indigo-50 text-indigo-600">
+                <Package className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-lg font-black text-slate-900">180+</p>
+                <p className="text-[11px] font-medium text-slate-500">Items Exchanged</p>
+              </div>
+            </div>
+
+            <div className="glass-card p-3.5 rounded-2xl shadow-sm hover:shadow-md transition-all flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600">
+                <TrendingUp className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-lg font-black text-emerald-600">₹3.4L+</p>
+                <p className="text-[11px] font-medium text-slate-500">Student Savings</p>
+              </div>
+            </div>
+
+            <div className="glass-card p-3.5 rounded-2xl shadow-sm hover:shadow-md transition-all flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-purple-50 text-purple-600">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-lg font-black text-purple-600">100%</p>
+                <p className="text-[11px] font-medium text-slate-500">Verified Students</p>
+              </div>
+            </div>
+
+            <div className="glass-card p-3.5 rounded-2xl shadow-sm hover:shadow-md transition-all flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-amber-50 text-amber-600">
+                <Zap className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-lg font-black text-slate-900">&lt; 15m</p>
+                <p className="text-[11px] font-medium text-slate-500">Avg. Campus Meetup</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* Main Content Area */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-6">
+        
+        {/* Navigation Tabs Switcher */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+          <div className="flex items-center p-1 bg-slate-200/70 rounded-xl shadow-inner">
+            <button
+              onClick={() => setActiveTab('marketplace')}
+              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition-all ${
+                activeTab === 'marketplace'
+                  ? 'bg-white text-indigo-600 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <span>🏷️ Available Marketplace</span>
+              <span className="px-2 py-0.5 text-[10px] font-black bg-indigo-50 text-indigo-700 rounded-full">
+                {listings.length}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('requests')}
+              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition-all ${
+                activeTab === 'requests'
+                  ? 'bg-white text-amber-700 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <span>📢 Student Requests (Wanted)</span>
+              <span className="px-2 py-0.5 text-[10px] font-black bg-amber-100 text-amber-800 rounded-full">
+                {requests.length}
+              </span>
+            </button>
+          </div>
+
+          <div className="text-xs text-slate-500 font-medium">
+            Showing results for <span className="font-bold text-slate-800">{selectedCampus}</span>
           </div>
         </div>
-      </div>
 
-      {/* View Switcher Tabs */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-        <div className="flex border-b border-gray-200">
-          <button
-            onClick={() => setActiveTab('marketplace')}
-            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === 'marketplace'
-                ? 'border-indigo-600 text-indigo-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            🏷️ Available Marketplace
-            <span className="bg-indigo-100 text-indigo-700 text-xs font-semibold px-2 py-0.5 rounded-full">
-              {listings.length}
-            </span>
-          </button>
-          <button
-            onClick={() => setActiveTab('requests')}
-            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === 'requests'
-                ? 'border-indigo-600 text-indigo-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            📢 Student Requests & Bounties
-            <span className="bg-red-100 text-red-700 text-xs font-semibold px-2 py-0.5 rounded-full">
-              {requests.length}
-            </span>
-          </button>
-        </div>
-      </div>
+        {/* View 1: Marketplace Listings */}
+        {activeTab === 'marketplace' ? (
+          <div className="space-y-6">
+            <FilterBar />
 
-      {/* Conditional Content */}
-      {activeTab === 'marketplace' ? (
-        <>
-          <FilterBar />
-          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            {isLoading ? (
-              <div className="flex justify-center py-20">
-                <Loader2 size={40} className="animate-spin text-indigo-600" />
-              </div>
-            ) : error ? (
-              <div className="text-center py-20 text-red-600">{error}</div>
-            ) : listings.length === 0 ? (
-              <div className="text-center py-20">
-                <SearchX size={48} className="text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-700 mb-2">No listings found</h3>
-                <p className="text-gray-500 mb-4">
-                  {hasActiveFilters ? 'Try adjusting your filters or search terms.' : 'Be the first to post something!'}
+            {listings.length === 0 ? (
+              <div className="text-center py-16 px-4 bg-white rounded-3xl border border-dashed border-slate-300">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-3">
+                  <Inbox className="w-6 h-6" />
+                </div>
+                <h3 className="text-base font-bold text-slate-900">No items found in this category</h3>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1 mb-4">
+                  Be the first student to post an item in {selectedCategory} for {selectedCampus}!
                 </p>
-                {hasActiveFilters && (
-                  <button
-                    onClick={clearFilters}
-                    className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg"
-                  >
-                    Clear Filters
-                  </button>
-                )}
+                <button
+                  onClick={openCreateModal}
+                  className="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-full shadow-md transition-all"
+                >
+                  + Post This Item
+                </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {listings.map((listing) => (
-                  <ListingCard key={listing.id} listing={listing} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                {listings.map((item) => (
+                  <ListingCard key={item.id} listing={item} />
                 ))}
               </div>
             )}
-          </main>
-        </>
-      ) : (
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex justify-end mb-4">
-            <button
-              onClick={openCreateRequestModal}
-              className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm px-4 py-2 rounded-full transition-colors shadow-md"
-            >
-              <PlusCircle size={18} />
-              Post a Request
-            </button>
           </div>
+        ) : (
+          /* View 2: Student Requests Board */
           <RequestBoard />
-        </main>
-      )}
+        )}
+
+      </main>
 
       {/* Modals */}
       <CreateListingModal />
+      <CreateRequestModal />
       <ItemDetailsModal />
       <AuthModal />
-      <CreateRequestModal />
     </div>
-  );
-}
-
-export default function HomePage() {
-  return (
-    <ExchangeProvider>
-      <HomeContent />
-    </ExchangeProvider>
   );
 }
