@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, ShieldCheck, MapPin, CheckCircle2, Key, Sparkles, Send, ArrowRight, Lock, Check } from 'lucide-react';
+import { X, ShieldCheck, MapPin, CheckCircle2, Key, Sparkles, Send, Lock, UserCheck, Star, AlertCircle } from 'lucide-react';
 import { useExchange } from '../context/ExchangeContext';
 
 const safeLocations = [
@@ -45,7 +45,6 @@ export default function ItemDetailsModal() {
         listingId: listing.id,
         ...offerForm
       });
-      // Generate a random 4-digit handshake OTP
       const newOtp = Math.floor(1000 + Math.random() * 9000).toString();
       setGeneratedOtp(newOtp);
       setOfferSubmitted(true);
@@ -75,7 +74,9 @@ export default function ItemDetailsModal() {
             <span className="px-2.5 py-1 text-xs font-semibold uppercase tracking-wider rounded-full bg-indigo-100 text-indigo-700">
               {listing.category}
             </span>
-            <span className="text-xs text-slate-500">• {listing.condition}</span>
+            <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+              • {listing.condition}
+            </span>
           </div>
           <button 
             onClick={closeItemModal}
@@ -85,8 +86,8 @@ export default function ItemDetailsModal() {
           </button>
         </div>
 
-        <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
-          {/* Main Info */}
+        <div className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
+          {/* Main Title & Pricing */}
           <div>
             <div className="flex items-baseline justify-between gap-4">
               <h2 className="text-2xl font-bold text-slate-900">{listing.title}</h2>
@@ -102,192 +103,199 @@ export default function ItemDetailsModal() {
             </div>
 
             {listing.swapWants && (
-              <div className="mt-2 p-3 bg-purple-50 border border-purple-100 rounded-xl text-xs text-purple-900 font-medium flex items-center gap-2">
+              <div className="mt-2 p-2.5 bg-purple-50 border border-purple-100 rounded-xl text-xs text-purple-900 font-medium flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-purple-600 shrink-0" />
-                <span><strong>Swap Wanted:</strong> {listing.swapWants}</span>
+                <span><strong>Swap Desired:</strong> {listing.swapWants}</span>
               </div>
             )}
 
-            <p className="mt-3 text-slate-600 text-sm leading-relaxed">{listing.description}</p>
+            <p className="mt-2.5 text-slate-600 text-xs leading-relaxed">{listing.description}</p>
           </div>
 
-          {/* 3-Tier Product Verification Audit */}
-          <div className="p-4 bg-emerald-50/60 border border-emerald-200/80 rounded-2xl space-y-3">
+          {/* 1. SELLER AUTHENTICITY BADGE (Proof of Right Person) */}
+          <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-emerald-800 font-semibold text-sm">
-                <ShieldCheck className="w-5 h-5 text-emerald-600" />
-                <span>Campus Product Verification Audit</span>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center">
+                  {listing.sellerName.charAt(0)}
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-slate-900">{listing.sellerName}</span>
+                    <span className="px-1.5 py-0.2 text-[10px] font-semibold bg-emerald-100 text-emerald-800 rounded flex items-center gap-0.5">
+                      <UserCheck className="w-3 h-3 text-emerald-600" /> Verified Student
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500">{listing.sellerMajor} • Roll No: 2205**** • Hostel Verified</p>
+                </div>
               </div>
-              <span className="px-2.5 py-0.5 text-xs font-bold bg-emerald-600 text-white rounded-full">
-                100% VERIFIED
+              <div className="text-right">
+                <div className="flex items-center gap-1 text-amber-500 text-xs font-bold justify-end">
+                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                  <span>4.9 / 5.0</span>
+                </div>
+                <p className="text-[10px] text-slate-400 font-medium">14 On-Campus Trades</p>
+              </div>
+            </div>
+          </div>
+
+          {/* 2. PRODUCT QUALITY AUDIT (Proof of Good Product) */}
+          <div className="p-4 bg-emerald-50/70 border border-emerald-200 rounded-xl space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-emerald-900 font-bold text-xs">
+                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                <span>Buyer Protection & Quality Assurance</span>
+              </div>
+              <span className="px-2 py-0.5 text-[10px] font-bold bg-emerald-600 text-white rounded-full">
+                100% INSPECTED
               </span>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-emerald-900">
-              <div className="flex items-center gap-1.5 bg-white/80 p-2 rounded-lg border border-emerald-100">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] text-emerald-900">
+              <div className="bg-white/90 p-2 rounded-lg border border-emerald-100 flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                <span>Student ID Verified</span>
+                <span>Tested & Working Condition</span>
               </div>
-              <div className="flex items-center gap-1.5 bg-white/80 p-2 rounded-lg border border-emerald-100">
+              <div className="bg-white/90 p-2 rounded-lg border border-emerald-100 flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                <span>Live Photo Check</span>
+                <span>Original Campus Live Photo</span>
               </div>
-              <div className="flex items-center gap-1.5 bg-white/80 p-2 rounded-lg border border-emerald-100">
+              <div className="bg-white/90 p-2 rounded-lg border border-emerald-100 flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                <span>Handshake OTP Protected</span>
+                <span>Pay Only After In-Person Check</span>
               </div>
             </div>
+
+            <p className="text-[11px] text-emerald-800 flex items-center gap-1.5 pt-1 border-t border-emerald-200/60">
+              <MapPin className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+              <span>Safe Meetup Location: <strong>{listing.locationTag || 'Central Library Foyer'}</strong></span>
+            </p>
           </div>
 
-          {/* Seller & Meetup Info */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-slate-50 rounded-xl text-xs text-slate-600">
-            <div className="flex items-center gap-2">
-              <span className="font-medium text-slate-800">Seller:</span>
-              <span>{listing.sellerName} ({listing.sellerMajor})</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-indigo-500 shrink-0" />
-              <span>{listing.locationTag || 'Campus Main Library'}</span>
-            </div>
-          </div>
-
-          {/* 2-Way Buyer-Seller Handshake Authentication Section */}
-          <div className="border-t border-slate-100 pt-5">
+          {/* 3. 2-WAY HANDSHAKE WORKFLOW */}
+          <div className="border-t border-slate-100 pt-4">
             {!offerSubmitted ? (
-              <div>
-                <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
-                  <Send className="w-4 h-4 text-indigo-600" />
-                  Step 1: Make an Exchange Offer (Buyer Side)
+              <form onSubmit={handleSubmit} className="space-y-3">
+                <h3 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <Send className="w-3.5 h-3.5 text-indigo-600" />
+                  Make an Exchange Offer / Barter Request
                 </h3>
 
-                <form onSubmit={handleSubmit} className="space-y-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">Your Name *</label>
-                      <input
-                        type="text"
-                        name="fromName"
-                        value={offerForm.fromName}
-                        onChange={handleChange}
-                        placeholder="e.g., Varun Agarwal"
-                        required
-                        className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">Contact (Email / Room No.) *</label>
-                      <input
-                        type="text"
-                        name="contact"
-                        value={offerForm.contact}
-                        onChange={handleChange}
-                        placeholder="e.g., varun@campus.edu or Room 302"
-                        required
-                        className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                      />
-                    </div>
-                  </div>
-
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">Your Offer / Trade Proposal *</label>
-                    <textarea
-                      name="offerDetails"
-                      rows={2}
-                      value={offerForm.offerDetails}
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">Your Name *</label>
+                    <input
+                      type="text"
+                      name="fromName"
+                      value={offerForm.fromName}
                       onChange={handleChange}
-                      placeholder="e.g., Offering ₹450 in cash or can swap for my DBMS notes."
+                      placeholder="e.g., Varun Agarwal"
                       required
-                      className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                      className="w-full px-3 py-1.5 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                     />
                   </div>
-
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">Preferred Safe Meetup Zone *</label>
-                    <select
-                      name="meetupLocation"
-                      value={offerForm.meetupLocation}
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">Contact (Email / Room No.) *</label>
+                    <input
+                      type="text"
+                      name="contact"
+                      value={offerForm.contact}
                       onChange={handleChange}
+                      placeholder="e.g., varun@campus.edu or Room 302"
                       required
-                      className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white font-medium"
-                    >
-                      {safeLocations.map((loc) => (
-                        <option key={loc} value={loc}>{loc}</option>
-                      ))}
-                    </select>
+                      className="w-full px-3 py-1.5 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    />
                   </div>
+                </div>
 
-                  <div className="flex justify-end gap-2 pt-2">
-                    <button
-                      type="button"
-                      onClick={closeItemModal}
-                      className="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="px-6 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 flex items-center gap-1.5"
-                    >
-                      <span>{isSubmitting ? 'Generating Pass...' : 'Submit Offer & Generate Handshake Pass →'}</span>
-                    </button>
-                  </div>
-                </form>
-              </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">Your Offer / Proposal *</label>
+                  <textarea
+                    name="offerDetails"
+                    rows={2}
+                    value={offerForm.offerDetails}
+                    onChange={handleChange}
+                    placeholder="e.g., Offering listed price or proposing a swap item..."
+                    required
+                    className="w-full px-3 py-1.5 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">Preferred Safe Meetup Zone *</label>
+                  <select
+                    name="meetupLocation"
+                    value={offerForm.meetupLocation}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-3 py-1.5 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                  >
+                    {safeLocations.map((loc) => (
+                      <option key={loc} value={loc}>{loc}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={closeItemModal}
+                    className="px-3.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="px-5 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm"
+                  >
+                    {isSubmitting ? 'Generating...' : 'Submit Offer & Generate Safety Pass →'}
+                  </button>
+                </div>
+              </form>
             ) : (
-              /* Step 2: Active Handshake Pass & Seller Verification */
-              <div className="space-y-4 animate-in fade-in duration-300">
-                {/* Buyer Handover Pass */}
-                <div className="p-4 bg-indigo-50 border border-indigo-200 rounded-2xl space-y-3">
+              <div className="space-y-3.5 animate-in fade-in duration-300">
+                {/* Buyer Digital Safety Pass */}
+                <div className="p-3.5 bg-indigo-50 border border-indigo-200 rounded-xl space-y-2.5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="p-1.5 bg-indigo-600 text-white rounded-lg">
-                        <Lock className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <h4 className="text-xs font-bold text-indigo-950 uppercase tracking-wide">Digital Safe Handover Pass</h4>
-                        <p className="text-[11px] text-indigo-700">Meetup Scheduled at: <strong>{offerForm.meetupLocation}</strong></p>
-                      </div>
+                      <Lock className="w-4 h-4 text-indigo-700" />
+                      <h4 className="text-xs font-bold text-indigo-950 uppercase">Digital Safe Exchange Pass</h4>
                     </div>
                     <span className="px-2 py-0.5 text-[10px] font-bold bg-indigo-200 text-indigo-800 rounded-full">
                       ACTIVE PASS
                     </span>
                   </div>
 
-                  <div className="p-3 bg-white rounded-xl border border-indigo-100 flex items-center justify-between">
+                  <div className="p-2.5 bg-white rounded-lg border border-indigo-100 flex items-center justify-between">
                     <div>
-                      <p className="text-[11px] text-slate-500 font-medium">Buyer's Secret Handshake OTP:</p>
-                      <p className="text-[10px] text-slate-400">Share this code ONLY after inspecting the item in person.</p>
+                      <p className="text-[11px] font-semibold text-slate-800">Buyer's Handshake OTP:</p>
+                      <p className="text-[10px] text-slate-500">Inspect the product at {offerForm.meetupLocation} first, then share this code.</p>
                     </div>
-                    <div className="px-4 py-1.5 bg-indigo-600 text-white font-mono text-lg font-black tracking-widest rounded-lg shadow-sm">
+                    <div className="px-3.5 py-1 bg-indigo-600 text-white font-mono text-base font-black rounded-md tracking-wider">
                       {generatedOtp}
                     </div>
                   </div>
                 </div>
 
-                {/* In-Person Handshake Verification Simulator */}
-                <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                      <Key className="w-4 h-4 text-emerald-600" />
-                      Step 2: In-Person Meetup Verification (Seller Side)
-                    </h4>
-                    <span className="text-[10px] text-slate-500 font-medium">Live Simulator</span>
-                  </div>
+                {/* Seller Handover Simulator */}
+                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                  <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <Key className="w-3.5 h-3.5 text-emerald-600" />
+                    In-Person Handover Verification (Seller Confirmation)
+                  </h4>
 
                   {isTradeCompleted ? (
-                    <div className="p-3 bg-emerald-100 border border-emerald-300 rounded-xl text-emerald-900 text-xs flex items-center gap-2 animate-in zoom-in-95">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-700 shrink-0" />
+                    <div className="p-2.5 bg-emerald-100 border border-emerald-300 rounded-lg text-emerald-900 text-xs flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
                       <div>
-                        <strong>🎉 Handshake Verified & Trade Completed!</strong>
-                        <p className="text-[11px] text-emerald-800 mt-0.5">Item marked as Exchanged. Seller reputation increased by +10 trust points.</p>
+                        <strong>🎉 Handshake Authenticated! Trade Completed.</strong>
+                        <p className="text-[10px] text-emerald-800">Item verified and delivered. Seller trust rating updated.</p>
                       </div>
                     </div>
                   ) : (
-                    <div className="space-y-2">
-                      <p className="text-xs text-slate-600">
-                        At the meetup, the seller enters the buyer's 4-digit OTP to authenticate handover and close the listing:
-                      </p>
+                    <div className="space-y-1.5">
+                      <p className="text-[11px] text-slate-600">Enter Buyer's OTP after physical inspection to complete trade:</p>
                       <div className="flex gap-2">
                         <input
                           type="text"
@@ -295,36 +303,34 @@ export default function ItemDetailsModal() {
                           value={enteredOtp}
                           onChange={(e) => setEnteredOtp(e.target.value)}
                           placeholder={`Enter OTP (${generatedOtp})`}
-                          className={`w-40 px-3 py-1.5 text-sm font-mono text-center border rounded-lg focus:outline-none ${
-                            otpError ? 'border-red-400 bg-red-50 text-red-700' : 'border-slate-300 focus:ring-2 focus:ring-emerald-500'
+                          className={`w-36 px-2.5 py-1 text-xs font-mono text-center border rounded-md ${
+                            otpError ? 'border-red-400 bg-red-50' : 'border-slate-300'
                           }`}
                         />
                         <button
                           type="button"
                           onClick={handleVerifyHandshake}
-                          className="px-4 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition-colors flex items-center gap-1"
+                          className="px-3.5 py-1 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-md"
                         >
-                          <Check className="w-4 h-4" />
-                          <span>Verify & Close Trade</span>
+                          Verify & Confirm Handover
                         </button>
                       </div>
-                      {otpError && <p className="text-[11px] text-red-600 font-medium">Incorrect OTP. Enter the 4-digit code shown above.</p>}
+                      {otpError && <p className="text-[10px] text-red-600">Incorrect OTP. Enter the 4-digit code above.</p>}
                     </div>
                   )}
                 </div>
 
-                <div className="flex justify-end pt-2">
+                <div className="flex justify-end pt-1">
                   <button
                     type="button"
                     onClick={() => {
                       setOfferSubmitted(false);
                       setIsTradeCompleted(false);
-                      setEnteredOtp('');
                       closeItemModal();
                     }}
-                    className="px-4 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg"
+                    className="px-3.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg"
                   >
-                    Done / Close
+                    Close
                   </button>
                 </div>
               </div>
