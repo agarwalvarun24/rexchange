@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { X, ShieldCheck, MapPin, CheckCircle2, Key, Sparkles, Send, Lock, UserCheck, Star, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, ShieldCheck, MapPin, CheckCircle2, Key, Sparkles, Send, Lock, UserCheck, Star } from 'lucide-react';
 import { useExchange } from '../context/ExchangeContext';
 
 const safeLocations = [
@@ -15,6 +15,7 @@ const safeLocations = [
 
 export default function ItemDetailsModal() {
   const { selectedListingForModal, closeItemModal, sendOffer, currentUser } = useExchange();
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [offerSubmitted, setOfferSubmitted] = useState(false);
   const [generatedOtp, setGeneratedOtp] = useState('7421');
@@ -23,15 +24,38 @@ export default function ItemDetailsModal() {
   const [otpError, setOtpError] = useState(false);
 
   const [offerForm, setOfferForm] = useState({
-    fromName: currentUser?.name || '',
-    contact: currentUser?.email || '',
+    fromName: '',
+    contact: '',
     offerDetails: '',
     meetupLocation: 'Central Library Foyer'
   });
 
+  // Automatically reset all form and OTP states whenever a new card is opened
+  useEffect(() => {
+    if (selectedListingForModal) {
+      setOfferSubmitted(false);
+      setIsTradeCompleted(false);
+      setEnteredOtp('');
+      setOtpError(false);
+      setIsSubmitting(false);
+      setOfferForm({
+        fromName: currentUser?.name || '',
+        contact: currentUser?.email || '',
+        offerDetails: '',
+        meetupLocation: selectedListingForModal.locationTag || 'Central Library Foyer'
+      });
+    }
+  }, [selectedListingForModal?.id, currentUser]);
+
   if (!selectedListingForModal) return null;
 
   const listing = selectedListingForModal;
+
+  // Dynamic credentials per card
+  const sellerInitial = listing.sellerName ? listing.sellerName.charAt(0) : 'S';
+  const sellerRoll = `2205${(listing.id * 173) % 8999 + 1000}`;
+  const sellerRating = (4.5 + ((listing.id * 0.1) % 0.5)).toFixed(1);
+  const tradesCount = (listing.id * 4 + 7) % 25 + 6;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setOfferForm({ ...offerForm, [e.target.name]: e.target.value });
@@ -112,34 +136,34 @@ export default function ItemDetailsModal() {
             <p className="mt-2.5 text-slate-600 text-xs leading-relaxed">{listing.description}</p>
           </div>
 
-          {/* 1. SELLER AUTHENTICITY BADGE (Proof of Right Person) */}
+          {/* 1. DYNAMIC SELLER CREDENTIALS */}
           <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center">
-                  {listing.sellerName.charAt(0)}
+                  {sellerInitial}
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs font-bold text-slate-900">{listing.sellerName}</span>
-                    <span className="px-1.5 py-0.2 text-[10px] font-semibold bg-emerald-100 text-emerald-800 rounded flex items-center gap-0.5">
+                    <span className="px-1.5 py-0.5 text-[10px] font-semibold bg-emerald-100 text-emerald-800 rounded flex items-center gap-0.5">
                       <UserCheck className="w-3 h-3 text-emerald-600" /> Verified Student
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-500">{listing.sellerMajor} • Roll No: 2205**** • Hostel Verified</p>
+                  <p className="text-[11px] text-slate-500">{listing.sellerMajor} • Roll No: {sellerRoll} • Hostel Verified</p>
                 </div>
               </div>
               <div className="text-right">
                 <div className="flex items-center gap-1 text-amber-500 text-xs font-bold justify-end">
                   <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                  <span>4.9 / 5.0</span>
+                  <span>{sellerRating} / 5.0</span>
                 </div>
-                <p className="text-[10px] text-slate-400 font-medium">14 On-Campus Trades</p>
+                <p className="text-[10px] text-slate-400 font-medium">{tradesCount} On-Campus Trades</p>
               </div>
             </div>
           </div>
 
-          {/* 2. PRODUCT QUALITY AUDIT (Proof of Good Product) */}
+          {/* 2. PRODUCT QUALITY AUDIT */}
           <div className="p-4 bg-emerald-50/70 border border-emerald-200 rounded-xl space-y-2.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5 text-emerald-900 font-bold text-xs">
