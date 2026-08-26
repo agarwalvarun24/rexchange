@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useExchange, CATEGORIES } from '../context/ExchangeContext';
+import { ShieldCheck } from 'lucide-react';
 
 const categoryIcons: Record<string, string> = {
   All: '🏷️',
@@ -24,7 +25,7 @@ export default function FilterBar() {
   } = useExchange();
 
   return (
-    <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-200/80 dark:border-slate-800 p-3 shadow-sm space-y-3 transition-colors">
+    <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-200/80 dark:border-slate-800 p-3.5 shadow-sm space-y-3 transition-colors">
       
       {/* Category Pills */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
@@ -49,15 +50,15 @@ export default function FilterBar() {
       </div>
 
       {/* Secondary Controls (Transaction Type & Verified Switch) */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-slate-800/80">
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-2.5 border-t border-slate-100 dark:border-slate-800">
         <div className="flex items-center gap-2">
           <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-            Type:
+            Exchange Type:
           </label>
           <select
             value={transactionFilter}
             onChange={(e) => setTransactionFilter(e.target.value)}
-            className="px-3 py-1.5 text-xs font-semibold bg-slate-100/80 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="px-3 py-1.5 text-xs font-semibold bg-slate-100/80 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             <option value="all">All Types</option>
             <option value="sell">For Sale (Cash ₹)</option>
@@ -67,19 +68,34 @@ export default function FilterBar() {
           </select>
         </div>
 
-        {/* Verified Toggle */}
-        <label className="flex items-center gap-2 cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={verifiedOnly}
-            onChange={(e) => setVerifiedOnly(e.target.checked)}
-            className="sr-only peer"
-          />
-          <div className="w-8 h-4.5 bg-slate-300 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-emerald-500 relative" />
-          <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-            Verified Students Only
-          </span>
-        </label>
+        {/* 100% Reliable Custom Emerald Green Toggle Switch */}
+        <button
+          type="button"
+          role="switch"
+          aria-checked={verifiedOnly}
+          onClick={() => setVerifiedOnly(!verifiedOnly)}
+          className="flex items-center gap-2.5 cursor-pointer select-none group"
+        >
+          <div
+            className={`w-10 h-5.5 flex items-center rounded-full p-0.5 transition-colors duration-300 ease-in-out ${
+              verifiedOnly
+                ? 'bg-emerald-500 shadow-md shadow-emerald-500/30'
+                : 'bg-slate-300 dark:bg-slate-700'
+            }`}
+          >
+            <div
+              className={`bg-white w-4.5 h-4.5 rounded-full shadow-md transform transition-transform duration-300 ease-in-out ${
+                verifiedOnly ? 'translate-x-4.5' : 'translate-x-0'
+              }`}
+            />
+          </div>
+          <div className="flex items-center gap-1">
+            <ShieldCheck className={`w-3.5 h-3.5 ${verifiedOnly ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`} />
+            <span className={`text-xs font-bold transition-colors ${verifiedOnly ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300'}`}>
+              Verified Students Only
+            </span>
+          </div>
+        </button>
       </div>
 
     </div>
