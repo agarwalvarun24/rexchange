@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useExchange } from '../context/ExchangeContext';
+import { ExchangeProvider, useExchange } from '../context/ExchangeContext';
 import Navbar from '../components/Navbar';
 import FilterBar from '../components/FilterBar';
 import ListingCard from '../components/ListingCard';
@@ -12,7 +12,7 @@ import ItemDetailsModal from '../components/ItemDetailsModal';
 import AuthModal from '../components/AuthModal';
 import { Package, TrendingUp, ShieldCheck, Zap, Sparkles, Inbox } from 'lucide-react';
 
-export default function Home() {
+function HomeContent() {
   const {
     listings,
     requests,
@@ -20,8 +20,7 @@ export default function Home() {
     setActiveTab,
     selectedCampus,
     selectedCategory,
-    openCreateModal,
-    openCreateRequestModal
+    openCreateModal
   } = useExchange();
 
   return (
@@ -175,5 +174,13 @@ export default function Home() {
       <ItemDetailsModal />
       <AuthModal />
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <ExchangeProvider>
+      <HomeContent />
+    </ExchangeProvider>
   );
 }
