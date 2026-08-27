@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { X, ShieldCheck, CheckCircle2, Lock, ArrowRight, Key } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, ShieldCheck, CheckCircle2, Key } from 'lucide-react';
 import { useExchange, CAMPUSES } from '../context/ExchangeContext';
 
 export default function AuthModal() {
@@ -10,13 +10,30 @@ export default function AuthModal() {
   const [otp, setOtp] = useState('');
   const [otpError, setOtpError] = useState(false);
 
+  // Starts completely empty for every visitor
   const [form, setForm] = useState({
-    name: 'Varun Agarwal',
-    email: 'varun@campus.edu',
-    major: 'Computer Science',
+    name: '',
+    email: '',
+    major: '',
     campus: 'Main Campus - North Wing',
-    dorm: 'Hostel Block A'
+    dorm: ''
   });
+
+  // Reset form when modal opens
+  useEffect(() => {
+    if (isAuthModalOpen) {
+      setStep('details');
+      setOtp('');
+      setOtpError(false);
+      setForm({
+        name: '',
+        email: '',
+        major: '',
+        campus: 'Main Campus - North Wing',
+        dorm: ''
+      });
+    }
+  }, [isAuthModalOpen]);
 
   if (!isAuthModalOpen) return null;
 
@@ -44,11 +61,11 @@ export default function AuthModal() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md overflow-y-auto">
-      <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
         
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50">
+          <div className="flex items-center gap-2.5">
             <div className="p-2 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 rounded-xl">
               <ShieldCheck className="w-5 h-5" />
             </div>
@@ -72,9 +89,9 @@ export default function AuthModal() {
                   name="name"
                   value={form.name}
                   onChange={handleChange}
-                  placeholder="e.g., Varun Agarwal"
+                  placeholder="e.g. Varun Agarwal"
                   required
-                  className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
 
@@ -85,9 +102,9 @@ export default function AuthModal() {
                   name="email"
                   value={form.email}
                   onChange={handleChange}
-                  placeholder="name@university.edu"
+                  placeholder="e.g. student@university.edu"
                   required
-                  className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
 
@@ -99,9 +116,9 @@ export default function AuthModal() {
                     name="major"
                     value={form.major}
                     onChange={handleChange}
-                    placeholder="Computer Science"
+                    placeholder="e.g. Computer Science"
                     required
-                    className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
                 <div>
@@ -111,9 +128,9 @@ export default function AuthModal() {
                     name="dorm"
                     value={form.dorm}
                     onChange={handleChange}
-                    placeholder="Hostel Block A"
+                    placeholder="e.g. Hostel Block A"
                     required
-                    className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
               </div>
@@ -124,7 +141,7 @@ export default function AuthModal() {
                   name="campus"
                   value={form.campus}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
                   {CAMPUSES.filter(c => c !== 'All Campuses').map((c) => (
                     <option key={c} value={c}>{c}</option>
