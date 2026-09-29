@@ -9,6 +9,7 @@ export interface Listing {
   condition: string;
   campus?: string;
   locationTag: string;
+  imageUrl?: string;
   sellerName: string;
   sellerMajor: string;
   isVerified?: boolean;
@@ -66,6 +67,7 @@ export interface CreateListingInput {
   condition: string;
   campus?: string;
   locationTag: string;
+  imageUrl?: string;
   sellerName: string;
   sellerMajor: string;
 }

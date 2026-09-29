@@ -33,6 +33,7 @@ const defaultListings: Listing[] = [
     condition: 'Good',
     campus: 'Main Campus - North Wing',
     locationTag: 'Central Library Foyer',
+    imageUrl: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80',
     sellerName: 'Aarav Sharma',
     sellerMajor: 'Computer Science',
     isVerified: true,
@@ -49,6 +50,7 @@ const defaultListings: Listing[] = [
     condition: 'Like New',
     campus: 'South Campus - Tech Park',
     locationTag: 'Student Activity Center',
+    imageUrl: 'https://images.unsplash.com/photo-1594980596870-8aa52a78d8cd?auto=format&fit=crop&w=600&q=80',
     sellerName: 'Priya Patel',
     sellerMajor: 'Electrical Engineering',
     isVerified: true,
@@ -65,6 +67,7 @@ const defaultListings: Listing[] = [
     condition: 'Digital PDF',
     campus: 'East Campus - Medical Block',
     locationTag: 'Main Canteen',
+    imageUrl: 'https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&w=600&q=80',
     sellerName: 'Rohan Gupta',
     sellerMajor: 'Chemistry',
     isVerified: true,
@@ -81,6 +84,7 @@ const defaultListings: Listing[] = [
     condition: 'N/A',
     campus: 'West Hostel Complex',
     locationTag: 'Hostel A Common Room',
+    imageUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=600&q=80',
     sellerName: 'Sneha Iyer',
     sellerMajor: 'Music',
     isVerified: true,
@@ -97,6 +101,7 @@ const defaultListings: Listing[] = [
     condition: 'Electronic',
     campus: 'Main Campus - North Wing',
     locationTag: 'Campus Bookstore',
+    imageUrl: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=600&q=80',
     sellerName: 'Kabir Singh',
     sellerMajor: 'Business Administration',
     isVerified: true,
@@ -113,6 +118,7 @@ const defaultListings: Listing[] = [
     condition: 'Used',
     campus: 'South Campus - Tech Park',
     locationTag: 'Engineering Block Entrance',
+    imageUrl: 'https://images.unsplash.com/photo-1532012164546-f432f2e3edd4?auto=format&fit=crop&w=600&q=80',
     sellerName: 'Ananya Reddy',
     sellerMajor: 'Information Technology',
     isVerified: false,
@@ -129,6 +135,7 @@ const defaultListings: Listing[] = [
     condition: 'Good',
     campus: 'South Campus - Tech Park',
     locationTag: 'Student Activity Center',
+    imageUrl: 'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?auto=format&fit=crop&w=600&q=80',
     sellerName: 'Vikram Mehta',
     sellerMajor: 'Mechanical Engineering',
     isVerified: true,
@@ -145,6 +152,7 @@ const defaultListings: Listing[] = [
     condition: 'Good',
     campus: 'East Campus - Medical Block',
     locationTag: 'Academic Block B Lobby',
+    imageUrl: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=600&q=80',
     sellerName: 'Meera Nair',
     sellerMajor: 'Physics',
     isVerified: true,
@@ -205,7 +213,9 @@ interface ExchangeContextType {
   isCreateModalOpen: boolean;
   isCreateRequestModalOpen: boolean;
   isAuthModalOpen: boolean;
+  isEditModalOpen: boolean;
   selectedListingForModal: Listing | null;
+  selectedListingForEdit: Listing | null;
   setSelectedCategory: (cat: string) => void;
   setSearchQuery: (query: string) => void;
   setTransactionFilter: (filter: string) => void;
@@ -218,11 +228,15 @@ interface ExchangeContextType {
   closeCreateRequestModal: () => void;
   openAuthModal: () => void;
   closeAuthModal: () => void;
+  openEditModal: (listing: Listing) => void;
+  closeEditModal: () => void;
   openItemModal: (listing: Listing) => void;
   closeItemModal: () => void;
   loginWithCollegeEmail: (email: string, name: string, major: string, campus: string, dorm: string) => void;
   logout: () => void;
   addNewListing: (listing: any) => Promise<void>;
+  editListing: (listing: Listing) => Promise<void>;
+  deleteListing: (id: number) => Promise<void>;
   addNewRequest: (req: any) => Promise<void>;
   sendOffer: (offer: any) => Promise<void>;
 }
@@ -236,6 +250,7 @@ export function ExchangeProvider({ children }: { children: React.ReactNode }) {
 
   const [darkMode, setDarkMode] = useState(false);
 
+  // Sync with LocalStorage on client
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const isDark = localStorage.getItem('theme') === 'dark';
@@ -244,6 +259,20 @@ export function ExchangeProvider({ children }: { children: React.ReactNode }) {
         document.documentElement.classList.add('dark');
       } else {
         document.documentElement.classList.remove('dark');
+      }
+
+      const savedListings = localStorage.getItem('rexchange_listings');
+      if (savedListings) {
+        try {
+          setAllListings(JSON.parse(savedListings));
+        } catch (_) {}
+      }
+
+      const savedRequests = localStorage.getItem('rexchange_requests');
+      if (savedRequests) {
+        try {
+          setRequests(JSON.parse(savedRequests));
+        } catch (_) {}
       }
     }
   }, []);
@@ -273,7 +302,9 @@ export function ExchangeProvider({ children }: { children: React.ReactNode }) {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isCreateRequestModalOpen, setIsCreateRequestModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedListingForModal, setSelectedListingForModal] = useState<Listing | null>(null);
+  const [selectedListingForEdit, setSelectedListingForEdit] = useState<Listing | null>(null);
 
   const filteredListings = allListings.filter((item) => {
     if (selectedCampus !== 'All Campuses' && item.campus && item.campus !== selectedCampus) {
@@ -295,24 +326,68 @@ export function ExchangeProvider({ children }: { children: React.ReactNode }) {
     return true;
   });
 
+  // Create Listing
   const addNewListing = async (data: any) => {
     const newListing: Listing = {
       ...data,
       id: Date.now(),
       campus: data.campus || (selectedCampus !== 'All Campuses' ? selectedCampus : 'Main Campus - North Wing'),
+      imageUrl: data.imageUrl || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80',
       isVerified: true,
       timePosted: new Date().toISOString()
     };
-    setAllListings((prev) => [newListing, ...prev]);
+    setAllListings((prev) => {
+      const updated = [newListing, ...prev];
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('rexchange_listings', JSON.stringify(updated));
+      }
+      return updated;
+    });
   };
 
+  // Edit Listing (CRUD Update)
+  const editListing = async (updatedListing: Listing) => {
+    setAllListings((prev) => {
+      const updated = prev.map((item) => (item.id === updatedListing.id ? updatedListing : item));
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('rexchange_listings', JSON.stringify(updated));
+      }
+      return updated;
+    });
+    if (selectedListingForModal?.id === updatedListing.id) {
+      setSelectedListingForModal(updatedListing);
+    }
+    setIsEditModalOpen(false);
+  };
+
+  // Delete Listing (CRUD Delete)
+  const deleteListing = async (id: number) => {
+    setAllListings((prev) => {
+      const updated = prev.filter((item) => item.id !== id);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('rexchange_listings', JSON.stringify(updated));
+      }
+      return updated;
+    });
+    if (selectedListingForModal?.id === id) {
+      setSelectedListingForModal(null);
+    }
+  };
+
+  // Add Request
   const addNewRequest = async (data: any) => {
     const newReq: StudentRequest = {
       ...data,
       id: Date.now(),
       timePosted: new Date().toISOString()
     };
-    setRequests((prev) => [newReq, ...prev]);
+    setRequests((prev) => {
+      const updated = [newReq, ...prev];
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('rexchange_requests', JSON.stringify(updated));
+      }
+      return updated;
+    });
   };
 
   const sendOffer = async (offerData: any) => {
@@ -344,7 +419,9 @@ export function ExchangeProvider({ children }: { children: React.ReactNode }) {
         isCreateModalOpen,
         isCreateRequestModalOpen,
         isAuthModalOpen,
+        isEditModalOpen,
         selectedListingForModal,
+        selectedListingForEdit,
         setSelectedCategory,
         setSearchQuery,
         setTransactionFilter,
@@ -357,11 +434,21 @@ export function ExchangeProvider({ children }: { children: React.ReactNode }) {
         closeCreateRequestModal: () => setIsCreateRequestModalOpen(false),
         openAuthModal: () => setIsAuthModalOpen(true),
         closeAuthModal: () => setIsAuthModalOpen(false),
+        openEditModal: (item) => {
+          setSelectedListingForEdit(item);
+          setIsEditModalOpen(true);
+        },
+        closeEditModal: () => {
+          setSelectedListingForEdit(null);
+          setIsEditModalOpen(false);
+        },
         openItemModal: (item) => setSelectedListingForModal(item),
         closeItemModal: () => setSelectedListingForModal(null),
         loginWithCollegeEmail,
         logout,
         addNewListing,
+        editListing,
+        deleteListing,
         addNewRequest,
         sendOffer
       }}
